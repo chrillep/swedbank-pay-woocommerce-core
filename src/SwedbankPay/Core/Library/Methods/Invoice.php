@@ -7,6 +7,7 @@ use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
 use SwedbankPay\Core\Order;
 use SwedbankPay\Core\OrderInterface;
+use SwedbankPay\Core\OrderItemInterface;
 
 trait Invoice
 {
@@ -97,6 +98,41 @@ trait Invoice
         // @todo Implement LegalAddress class
 
         return $result;
+    }
+
+    public function createApprovedLegalAddress($orderId, $socialSecurityNumber, $postCode)
+    {
+	    /** @var Order $order */
+	    $order = $this->getOrder($orderId);
+
+	    $paymentId = $order->getPaymentId();
+	    if (empty($paymentId)) {
+		    throw new Exception('Unable to get payment ID');
+	    }
+
+	    $href = $this->fetchPaymentInfo($paymentId)->getOperationByRel('create-approved-legal-address');
+	    if (empty($href)) {
+		    throw new Exception('"Create approved legal address" is unavailable');
+	    }
+
+	    $params = [
+		    'addressee' => [
+			    'socialSecurityNumber' => $socialSecurityNumber,
+			    'zipCode' => str_replace(' ', '', $postCode)
+		    ]
+	    ];
+
+	    try {
+		    $result = $this->request('POST', $href, $params);
+	    } catch (\Exception $e) {
+		    $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+
+		    throw new Exception($e->getMessage());
+	    }
+
+	    // @todo Implement LegalAddress class
+
+	    return $result;
     }
 
     /**
@@ -197,15 +233,32 @@ trait Invoice
             throw new Exception('Capture is unavailable');
         }
 
+        // Covert order lines
+        $itemDescriptions = [];
+        $vatSummary = [];
+        foreach ($items as $item) {
+	        $itemDescriptions[] = [
+	        	'amount' => $item[OrderItemInterface::FIELD_AMOUNT],
+		        'description' => $item[OrderItemInterface::FIELD_NAME]
+	        ];
+
+	        $vatSummary[] = [
+	        	'amount' => $item[OrderItemInterface::FIELD_AMOUNT],
+		        'vatPercent' => $item[OrderItemInterface::FIELD_VAT_PERCENT],
+		        'vatAmount' => $item[OrderItemInterface::FIELD_VAT_AMOUNT]
+	        ];
+        }
+
         $params = [
             'transaction' => [
                 'activity' => 'FinancingConsumer',
                 'amount' => (int)bcmul(100, $amount),
                 'vatAmount' => (int)bcmul(100, $vatAmount),
                 'description' => sprintf('Capture for Order #%s', $order->getOrderId()),
-                'payeeReference' => $this->generatePayeeReference($orderId)
+                'payeeReference' => $this->generatePayeeReference($orderId),
+                'itemDescriptions' => $itemDescriptions,
+                'vatSummary' => $vatSummary
             ],
-            'itemDescriptions' => $items
         ];
 
         $result = $this->request('POST', $href, $params);
