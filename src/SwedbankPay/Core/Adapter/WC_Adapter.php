@@ -166,6 +166,8 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
     public function getOrderData($order_id)
     {
         $order = wc_get_order($order_id);
+        // Force a new DB read (and update cache) for meta data.
+        $order->read_meta_data(true);
 
         $countries = WC()->countries->countries;
         $states = WC()->countries->states;
