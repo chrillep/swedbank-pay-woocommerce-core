@@ -71,7 +71,46 @@ trait Card
         ];
 
         if ($this->configuration->getUseCardholderInfo()) {
-            $params['payment']['cardholder'] = $order->getCardHolderInformation();
+            $params['payment']['cardholder'] = [
+                'firstName'       => $order->getBillingFirstName(),
+                'lastName'        => $order->getBillingLastName(),
+                'email'           => $order->getBillingEmail(),
+                'msisdn'          => $order->getBillingPhone(),
+                'homePhoneNumber' => $order->getBillingPhone(),
+                'workPhoneNumber' => $order->getBillingPhone(),
+            ];
+
+            if ($this->configuration->getUsePayerInfo()) {
+                $params['payment']['cardholder']['billingAddress'] = [
+                    'firstName'     => $order->getBillingFirstName(),
+                    'lastName'      => $order->getBillingLastName(),
+                    'email'         => $order->getBillingEmail(),
+                    'msisdn'        => $order->getBillingPhone(),
+                    'streetAddress' => implode(', ',
+                        [$order->getBillingAddress1(), $order->getBillingAddress2()]
+                    ),
+                    'coAddress'     => '',
+                    'city'          => $order->getBillingCity(),
+                    'zipCode'       => $order->getBillingPostcode(),
+                    'countryCode'   => $order->getBillingCountryCode()
+                ];
+
+                // Add shipping address if needs
+                if ($order->needsShipping()) {
+                    $info['shippingAddress'] = [
+                        'firstName'     => $order->getShippingFirstName(),
+                        'lastName'      => $order->getShippingLastName(),
+                        'email'         => $order->getShippingEmail(),
+                        'msisdn'        => $order->getShippingPhone(),
+                        'streetAddress' => implode(', ',
+                            [$order->getShippingAddress1(), $order->getShippingAddress2()]),
+                        'coAddress'     => '',
+                        'city'          => $order->getShippingCity(),
+                        'zipCode'       => $order->getShippingPostcode(),
+                        'countryCode'   => $order->getShippingCountryCode()
+                    ];
+                }
+            }
         }
 
         if ($paymentToken) {
