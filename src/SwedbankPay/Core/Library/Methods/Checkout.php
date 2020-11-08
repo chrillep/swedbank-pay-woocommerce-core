@@ -328,7 +328,7 @@ trait Checkout
                 $this->updateOrderStatus(
                     $orderId,
                     OrderInterface::STATUS_CAPTURED,
-                    'Transaction is captured.',
+                    sprintf('Transaction is captured. Amount: %s', $amount),
                     $transaction['number']
                 );
                 break;
@@ -336,7 +336,7 @@ trait Checkout
                 $this->updateOrderStatus(
                     $orderId,
                     OrderInterface::STATUS_AUTHORIZED,
-                    sprintf('Transaction capture status: %s.', $transaction['state'])
+                    sprintf('Transaction capture status: %s. Amount: %s', $transaction['state'], $amount)
                 );
                 break;
             case 'Failed':

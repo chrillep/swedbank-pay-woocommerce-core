@@ -2,6 +2,7 @@
 
 namespace SwedbankPay\Core\Adapter;
 
+use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
 use SwedbankPay\Core\PaymentAdapter;
 use SwedbankPay\Core\PaymentAdapterInterface;
@@ -327,6 +328,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         $items = apply_filters('swedbank_pay_order_items', $items, $order);
 
         return array(
+        	OrderInterface::PAYMENT_METHOD => $this->getPaymentMethod($order_id),
             OrderInterface::ORDER_ID => $order->get_id(),
             OrderInterface::AMOUNT => apply_filters(
                 'swedbank_pay_order_amount',
@@ -352,7 +354,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 	            $order
             ),
             OrderInterface::CURRENCY => $order->get_currency(),
-            OrderInterface::STATUS => $order->get_status(),
+            OrderInterface::STATUS => $this->getOrderStatus($order_id),
             OrderInterface::CREATED_AT => gmdate('Y-m-d H:i:s', $order->get_date_created()->getTimestamp()),
             OrderInterface::PAYMENT_ID => $order->get_meta('_payex_payment_id'),
             OrderInterface::PAYMENT_ORDER_ID => $order->get_meta('_payex_paymentorder_id'),
@@ -497,6 +499,39 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         return true;
     }
 
+
+	/**
+	 * Get Order Status.
+	 *
+	 * @param $order_id
+	 *
+	 * @see wc_get_order_statuses()
+	 * @return string
+	 * @throws Exception
+	 */
+	public function getOrderStatus($order_id)
+	{
+		$order = wc_get_order($order_id);
+
+		switch ($order->get_status()) {
+			case 'pending':
+				return OrderInterface::STATUS_PENDING;
+			case 'on-hold':
+				return OrderInterface::STATUS_AUTHORIZED;
+			case 'completed';
+			case 'processing';
+				return OrderInterface::STATUS_CAPTURED;
+			case 'cancelled':
+				return OrderInterface::STATUS_CANCELLED;
+			case 'refunded':
+				return OrderInterface::STATUS_REFUNDED;
+			case 'failed':
+				return OrderInterface::STATUS_FAILED;
+			default:
+				throw new Exception('Unable to recognize order status.');
+		}
+	}
+
     /**
      * Update Order Status.
      *
@@ -569,6 +604,39 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         }
     }
 
+	/**
+	 * Set Payment Id to Order.
+	 *
+	 * @param mixed $orderId
+	 * @param string $paymentId
+	 *
+	 * @return void
+	 */
+    public function setPaymentId($orderId, $paymentId)
+    {
+    	$order = wc_get_order($orderId);
+
+	    $order->update_meta_data( '_payex_payment_id', $paymentId );
+	    $order->save();
+	    clean_post_cache( $order->get_id() );
+    }
+
+	/**
+	 * Set Payment Order Id to Order.
+	 *
+	 * @param mixed $orderId
+	 * @param string $paymentOrderId
+	 *
+	 * @return void
+	 */
+    public function setPaymentOrderId($orderId, $paymentOrderId)
+    {
+	    $order = wc_get_order($orderId);
+
+	    $order->update_meta_data( '_payex_paymentorder_id', $paymentOrderId );
+	    $order->save();
+    }
+
     /**
      * Add Order Note.
      *
@@ -579,6 +647,37 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
     {
         $order = wc_get_order($order_id);
         $order->add_order_note($message);
+    }
+
+	/**
+	 * Get Payment Method.
+	 *
+	 * @param mixed $orderId
+	 *
+	 * @return string|null Returns method or null if not exists
+	 */
+    public function getPaymentMethod($orderId)
+    {
+	    $order = wc_get_order($orderId);
+
+	    switch ($order->get_payment_method()) {
+		    case 'payex_checkout':
+		    	return PaymentAdapterInterface::METHOD_CHECKOUT;
+		    case 'payex_psp_cc':
+			    return PaymentAdapterInterface::METHOD_CC;
+		    case 'payex_psp_invoice':
+			    return PaymentAdapterInterface::METHOD_INVOICE;
+		    case 'payex_psp_mobilepay':
+			    return PaymentAdapterInterface::METHOD_MOBILEPAY;
+		    case 'payex_psp_swish':
+			    return PaymentAdapterInterface::METHOD_SWISH;
+		    case 'payex_psp_trustly':
+			    return PaymentAdapterInterface::METHOD_TRUSTLY;
+		    case 'payex_psp_vipps':
+			    return PaymentAdapterInterface::METHOD_VIPPS;
+		    default:
+		    	return null;
+	    }
     }
 
     /**

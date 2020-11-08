@@ -9,6 +9,7 @@ use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
 use SwedbankPay\Core\Order;
 use SwedbankPay\Core\OrderInterface;
+use SwedbankPay\Core\PaymentAdapterInterface;
 
 trait OrderAction
 {
@@ -164,7 +165,7 @@ trait OrderAction
                 $this->updateOrderStatus(
                     $orderId,
                     OrderInterface::STATUS_CAPTURED,
-                    'Transaction is captured.',
+	                sprintf('Transaction is captured. Amount: %s', $amount),
                     $transaction['number']
                 );
                 break;
@@ -172,7 +173,7 @@ trait OrderAction
                 $this->updateOrderStatus(
                     $orderId,
                     OrderInterface::STATUS_AUTHORIZED,
-                    sprintf('Transaction capture status: %s.', $transaction['state'])
+	                sprintf('Transaction capture status: %s. Amount: %s', $transaction['state'], $amount)
                 );
                 break;
             case 'Failed':
@@ -414,6 +415,45 @@ trait OrderAction
         return $this->adapter->canUpdateOrderStatus($orderId, $status, $transactionId);
     }
 
+	/**
+	 * Get Order Status.
+	 *
+	 * @param mixed $orderId
+	 *
+	 * @return string
+	 * @throws Exception
+	 */
+	public function getOrderStatus($orderId)
+	{
+		return $this->adapter->getOrderStatus($orderId);
+	}
+
+	/**
+	 * Set Payment Id to Order.
+	 *
+	 * @param mixed $orderId
+	 * @param string $paymentId
+	 *
+	 * @return void
+	 */
+	public function setPaymentId($orderId, $paymentId)
+	{
+		$this->adapter->setPaymentId($orderId, $paymentId);
+	}
+
+	/**
+	 * Set Payment Order Id to Order.
+	 *
+	 * @param mixed $orderId
+	 * @param string $paymentOrderId
+	 *
+	 * @return void
+	 */
+	public function setPaymentOrderId($orderId, $paymentOrderId)
+	{
+		$this->adapter->setPaymentOrderId($orderId, $paymentOrderId);
+	}
+
     /**
      * Update Order Status.
      *
@@ -439,6 +479,18 @@ trait OrderAction
     {
         $this->adapter->addOrderNote($orderId, $message);
     }
+
+	/**
+	 * Get Payment Method.
+	 *
+	 * @param mixed $orderId
+	 *
+	 * @return string|null Returns method or null if not exists
+	 */
+	public function getPaymentMethod($orderId)
+	{
+		return $this->adapter->getPaymentMethod($orderId);
+	}
 
     /**
      * Fetch Transactions related to specific order, process transactions and
@@ -726,5 +778,68 @@ trait OrderAction
         shuffle($arr);
 
         return $orderId . 'x' . substr(implode('', $arr), 0, 5);
+    }
+
+	/**
+	 * @param mixed $orderId
+	 * @return void
+	 */
+    public function updateTransactionsOnFailure($orderId)
+    {
+    	/** @var OrderInterface $order */
+    	$order = $this->getOrder($orderId);
+
+	    if (OrderInterface::STATUS_FAILED === $order->getStatus()) {
+		    // Wait for "Completed" transaction state
+		    // Current payment can be changed
+		    $attempts = 0;
+		    while (true) {
+			    sleep(1);
+			    $attempts++;
+			    if ($attempts > 60) {
+				    break;
+			    }
+
+			    // Get Payment ID
+			    if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+				    $paymentId = $this->getPaymentIdByPaymentOrder($order->getPaymentOrderId());
+			    } else {
+			    	$paymentId = $order->getPaymentId();
+			    }
+
+			    $transactions = $this->fetchTransactionsList($paymentId);
+			    foreach ($transactions as $transaction) {
+			    	/** @var Transaction $transaction */
+				    if (in_array($transaction->getType(), [
+					    TransactionInterface::TYPE_AUTHORIZATION,
+					    TransactionInterface::TYPE_SALE
+				    ])) {
+					    switch ($transaction->getState()) {
+						    case TransactionInterface::STATE_COMPLETED:
+							    // Transaction has found: update the order state
+							    if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+								    $this->setPaymentId($orderId, $paymentId);
+							    }
+
+							    $this->fetchTransactionsAndUpdateOrder($orderId, $transaction->getNumber());
+							    break 3;
+						    case TransactionInterface::STATE_FAILED:
+							    // Log failed transaction
+							    $this->adapter->log(
+								    LogLevel::WARNING,
+								    sprintf('Failed transaction: (%s), (%s), (%s), (%s)',
+									    $orderId,
+									    $paymentId,
+									    $transaction->getId(),
+									    var_export($transaction->getData(), true)
+								    )
+							    );
+
+							    break;
+					    }
+				    }
+			    }
+		    }
+	    }
     }
 }
