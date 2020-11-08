@@ -283,4 +283,56 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
     ) {
         // @todo
     }
+
+	/**
+	 * Get Order Status.
+	 *
+	 * @param $order_id
+	 *
+	 * @see wc_get_order_statuses()
+	 * @return string
+	 * @throws Exception
+	 */
+	public function getOrderStatus($order_id)
+	{
+		return OrderInterface::STATUS_AUTHORIZED;
+	}
+
+	/**
+	 * Set Payment Id to Order.
+	 *
+	 * @param mixed $orderId
+	 * @param string $paymentId
+	 *
+	 * @return void
+	 */
+	public function setPaymentId($orderId, $paymentId)
+	{
+		// @todo
+	}
+
+	/**
+	 * Set Payment Order Id to Order.
+	 *
+	 * @param mixed $orderId
+	 * @param string $paymentOrderId
+	 *
+	 * @return void
+	 */
+	public function setPaymentOrderId($orderId, $paymentOrderId)
+	{
+		// @todo
+	}
+
+	/**
+	 * Get Payment Method.
+	 *
+	 * @param mixed $orderId
+	 *
+	 * @return string|null Returns method or null if not exists
+	 */
+	public function getPaymentMethod($orderId)
+	{
+		return PaymentAdapterInterface::METHOD_CC;
+	}
 }
