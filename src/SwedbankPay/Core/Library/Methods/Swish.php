@@ -44,6 +44,7 @@ trait Swish
                 'userAgent' => $order->getHttpUserAgent(),
                 'language' => $order->getLanguage(),
                 'urls' => [
+                    'hostUrls' => $urls->getHostUrls(),
                     'completeUrl' => $urls->getCompleteUrl(),
                     'cancelUrl' => $urls->getCancelUrl(),
                     'callbackUrl' => $urls->getCallbackUrl(),
