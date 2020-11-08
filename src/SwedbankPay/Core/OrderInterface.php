@@ -6,6 +6,7 @@ namespace SwedbankPay\Core;
 /**
  * Interface OrderInterface
  * @package SwedbankPay\Core
+ * @method string|null getPaymentMethod()
  * @method mixed getOrderId()
  * @method float getAmount()
  * @method float getVatAmount()
@@ -105,6 +106,7 @@ interface OrderInterface
     /**
      * Order Fields
      */
+	const PAYMENT_METHOD = 'payment_method';
     const ITEMS = 'items';
     const LANGUAGE = 'language';
     const ORDER_ID = 'order_id';
