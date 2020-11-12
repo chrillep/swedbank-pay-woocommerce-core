@@ -758,6 +758,14 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         if ($order_id) {
             $order = wc_get_order($order_id);
             $order->add_payment_token($token);
+
+            // Activate subscription if this is WC_Subscriptions
+	        if ( function_exists( 'wcs_order_contains_subscription' ) &&
+	             wcs_order_contains_subscription( $order ) &&
+	             abs( $order->get_total() ) < 0.01
+	        ) {
+		        $order->payment_complete();
+	        }
         }
     }
 
