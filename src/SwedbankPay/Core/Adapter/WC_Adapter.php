@@ -55,11 +55,14 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         }
 
         $logger->log(
-            WC_Log_Levels::INFO,
-            sprintf('[%s] %s %s', $level, $message, count($context) > 0 ? var_export($context, true) : ''),
-            array(
-                'source' => $this->gateway->id,
-                '_legacy' => true,
+            $level,
+            sprintf('[%s] %s [%s]', $level, $message, count($context) > 0 ? var_export($context, true) : ''),
+            array_merge(
+                $context,
+                array(
+                    'source' => $this->gateway->id,
+                    '_legacy' => true,
+                )
             )
         );
     }
