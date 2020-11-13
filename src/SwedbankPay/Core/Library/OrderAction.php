@@ -823,7 +823,7 @@ trait OrderAction
                                 break 3;
                             case TransactionInterface::STATE_FAILED:
                                 // Log failed transaction
-                                $this->adapter->log(
+                                $this->log(
                                     LogLevel::WARNING,
                                     sprintf('Failed transaction: (%s), (%s), (%s), (%s)',
                                         $orderId,

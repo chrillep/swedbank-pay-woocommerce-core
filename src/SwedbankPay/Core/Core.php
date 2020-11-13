@@ -162,11 +162,13 @@ class Core implements CoreInterface, TrustlyInterface, MobilepayInterface
     }
 
     /**
-     * @param string $level
-     * @param string $message
-     * @param array $context
+     * Log a message.
+     *
+     * @param string $level See LogLevel
+     * @param string $message Message
+     * @param array $context Context
      */
-    private function log($level, $message, array $context = [])
+    public function log($level, $message, array $context = [])
     {
         if (!$this->configuration->getDebug()) {
             return;

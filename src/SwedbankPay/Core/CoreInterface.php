@@ -536,4 +536,13 @@ interface CoreInterface
      * @throws Exception
      */
     public function refundCheckout($orderId, $amount = null, $vatAmount = 0, array $items = []);
+
+    /**
+     * Log a message.
+     *
+     * @param string $level See LogLevel
+     * @param string $message Message
+     * @param array $context Context
+     */
+    public function log($level, $message, array $context = []);
 }
