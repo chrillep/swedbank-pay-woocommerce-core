@@ -325,7 +325,18 @@ trait OrderAction
             case 'Completed':
                 $info = $this->fetchPaymentInfo($paymentId);
 
-                if ((int) $info['payment']['remainingReversalAmount'] === 0) {
+                // Check if the payment was refund fully
+                $isFullRefund = false;
+                if (!isset($info['payment']['remainingReversalAmount'])) {
+                	// Failback if `remainingReversalAmount` is missing
+                	if (bccomp($order->getAmount(), $amount, 2) === 0) {
+		                $isFullRefund = true;
+	                }
+                } elseif ((int) $info['payment']['remainingReversalAmount'] === 0) {
+	                $isFullRefund = true;
+                }
+
+                if ($isFullRefund) {
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_REFUNDED,
