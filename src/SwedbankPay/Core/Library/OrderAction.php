@@ -325,7 +325,18 @@ trait OrderAction
             case 'Completed':
                 $info = $this->fetchPaymentInfo($paymentId);
 
-                if ((int) $info['payment']['remainingReversalAmount'] === 0) {
+                // Check if the payment was refund fully
+                $isFullRefund = false;
+                if (!isset($info['payment']['remainingReversalAmount'])) {
+                    // Failback if `remainingReversalAmount` is missing
+                    if (bccomp($order->getAmount(), $amount, 2) === 0) {
+                        $isFullRefund = true;
+                    }
+                } elseif ((int) $info['payment']['remainingReversalAmount'] === 0) {
+                    $isFullRefund = true;
+                }
+
+                if ($isFullRefund) {
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_REFUNDED,
@@ -745,12 +756,33 @@ trait OrderAction
                     break;
                 }
 
-                $this->updateOrderStatus(
-                    $orderId,
-                    OrderInterface::STATUS_REFUNDED,
-                    'Payment has been refunded.',
-                    $transaction->getNumber()
-                );
+                // Check if the payment was refund fully
+                $isFullRefund = false;
+                $info = $this->fetchPaymentInfo($order->getPaymentId());
+                if (!isset($info['payment']['remainingReversalAmount'])) {
+                    // Failback if `remainingReversalAmount` is missing
+                    if (bccomp($order->getAmount(), $transaction->getAmount() / 100, 2) === 0) {
+                        $isFullRefund = true;
+                    }
+                } elseif ((int) $info['payment']['remainingReversalAmount'] === 0) {
+                    $isFullRefund = true;
+                }
+
+                // Update order status
+                if ($isFullRefund) {
+                    $this->updateOrderStatus(
+                        $orderId,
+                        OrderInterface::STATUS_REFUNDED,
+                        'Payment has been refunded.',
+                        $transaction->getNumber()
+                    );
+                } else {
+                    $this->addOrderNote(
+                        $orderId,
+                        sprintf('Refunded: %s. ', $transaction->getAmount() / 100)
+                    );
+                }
+
                 break;
             default:
                 throw new Exception(sprintf('Error: Unknown type %s', $transaction->getType()));
