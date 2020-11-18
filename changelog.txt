@@ -1,0 +1,36 @@
+Version 2.0.0
+* Make order as "refunded" on full refund only
+* Make `log()` to be public
+* Save tokens if possible
+* Fix problem with trial products
+* Fix callbackUrl for payment change or verification
+* Implemented `updateTransactionsOnFailure()`
+* Add 'hostUrls' to Swish and Card method
+* Add payer information sending optional
+* Invoice fixes
+* Force a new DB read for meta data when getting order data
+* Use save instead of save_meta_data
+* Update Trustly::initiateTrustlyPayment()
+* Update Mobilepay::initiateMobilepayPayment()
+* Add additional property checks in getConfiguration() method
+* Implemented Trustly payment method
+* Add items parameter to refundCheckout() method
+* Improve filters
+* Implemented Mobilepay method
+* Implemented of processing of Verification transactions
+* Implemented addOrderNote()
+* Implemented canUpdateOrderStatus()
+* Sort transactions by date
+* Implemented fetchTransactionsAndUpdateOrder() method
+* Add shippingAddress parameter if order is shippable only
+* Make cardholder as optional parameter
+* Make payer as optional parameter
+* Implemented method allows UnscheduledPurchase
+* Renamed initiateNewCreditCardPayment to initiateVerifyCreditCardPayment
+* Added logoUrl
+* Fixes for msisdn, homePhoneNumber, workPhoneNumber
+* Make payment_token_class property optional
+* Add methods of the checkout recurring
+
+Version 1.0.0
+* First release
