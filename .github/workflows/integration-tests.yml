@@ -17,14 +17,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install dependencies
-        uses: php-actions/composer@v1
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: '7.3'
+          extension: intl, mbstring, json, bcmath
+          coverage: xdebug
+          tools: composer, php-cs-fixer, phpunit, phpcpd, phpmd
       - name: Unit tests
         env:
           MERCHANT_TOKEN: ${{ secrets.MERCHANT_TOKEN }}
           PAYEE_ID: ${{ secrets.PAYEE_ID }}
           MERCHANT_TOKEN_MOBILEPAY: ${{ secrets.MERCHANT_TOKEN_MOBILEPAY }}
           PAYEE_ID_MOBILEPAY: ${{ secrets.PAYEE_ID_MOBILEPAY }}
-        run: ./vendor/bin/phpunit --configuration=./phpunit.xml.dist --bootstrap=./tests/bootstrap.php ./tests/ --coverage-clover=coverage.xml
+        run: composer install && ./vendor/bin/phpunit --configuration=./phpunit.xml.dist --bootstrap=./tests/bootstrap.php ./tests/ --coverage-clover=coverage.xml
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
