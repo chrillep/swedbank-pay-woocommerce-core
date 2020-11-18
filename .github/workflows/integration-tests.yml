@@ -29,7 +29,7 @@ jobs:
           PAYEE_ID: ${{ secrets.PAYEE_ID }}
           MERCHANT_TOKEN_MOBILEPAY: ${{ secrets.MERCHANT_TOKEN_MOBILEPAY }}
           PAYEE_ID_MOBILEPAY: ${{ secrets.PAYEE_ID_MOBILEPAY }}
-        run: ./vendor/bin/phpunit --configuration=./phpunit.xml.dist --bootstrap=./tests/bootstrap.php ./tests/ --coverage-clover=coverage.xml
+        run: composer install && ./vendor/bin/phpunit --configuration=./phpunit.xml.dist --bootstrap=./tests/bootstrap.php ./tests/ --coverage-clover=coverage.xml
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
