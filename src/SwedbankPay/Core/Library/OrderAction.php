@@ -419,11 +419,11 @@ trait OrderAction
      *
      * @param mixed $orderId
      * @param string $status
-     * @param string|null $transactionId
+     * @param string|null $transactionNumber
      * @return bool
      */
-    public function canUpdateOrderStatus($orderId, $status, $transactionId = null) {
-        return $this->adapter->canUpdateOrderStatus($orderId, $status, $transactionId);
+    public function canUpdateOrderStatus($orderId, $status, $transactionNumber = null) {
+        return $this->adapter->canUpdateOrderStatus($orderId, $status, $transactionNumber);
     }
 
     /**
@@ -471,12 +471,12 @@ trait OrderAction
      * @param mixed $orderId
      * @param string $status
      * @param string|null $message
-     * @param string|null $transactionId
+     * @param string|null $transactionNumber
      */
-    public function updateOrderStatus($orderId, $status, $message = null, $transactionId = null)
+    public function updateOrderStatus($orderId, $status, $message = null, $transactionNumber = null)
     {
         if ($this->canUpdateOrderStatus($orderId, $status)) {
-            $this->adapter->updateOrderStatus($orderId, $status, $message, $transactionId);
+            $this->adapter->updateOrderStatus($orderId, $status, $message, $transactionNumber);
         }
     }
 
@@ -508,10 +508,10 @@ trait OrderAction
      * update order status.
      *
      * @param mixed $orderId
-     * @param string|null $transactionId
+     * @param string|null $transactionNumber
      * @throws Exception
      */
-    public function fetchTransactionsAndUpdateOrder($orderId, $transactionId = null)
+    public function fetchTransactionsAndUpdateOrder($orderId, $transactionNumber = null)
     {
         /** @var Order $order */
         $order = $this->getOrder($orderId);
@@ -526,10 +526,10 @@ trait OrderAction
         $this->saveTransactions($orderId, $transactions);
 
         // Extract transaction from list
-        if ($transactionId) {
-            $transaction = $this->findTransaction('number', $transactionId);
+        if ($transactionNumber) {
+            $transaction = $this->findTransaction('number', $transactionNumber);
             if ( ! $transaction ) {
-                throw new Exception(sprintf('Failed to fetch transaction number #%s', $transactionId));
+                throw new Exception(sprintf('Failed to fetch transaction number #%s', $transactionNumber));
             }
 
             $transactions = [ $transaction ];

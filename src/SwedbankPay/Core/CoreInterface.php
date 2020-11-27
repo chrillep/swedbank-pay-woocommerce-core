@@ -232,10 +232,10 @@ interface CoreInterface
      *
      * @param mixed $orderId
      * @param string $status
-     * @param string|null $transactionId
+     * @param string|null $transactionNumber
      * @return bool
      */
-    public function canUpdateOrderStatus($orderId, $status, $transactionId = null);
+    public function canUpdateOrderStatus($orderId, $status, $transactionNumber = null);
 
 	/**
 	 * Get Order Status.
@@ -273,9 +273,9 @@ interface CoreInterface
      * @param mixed $orderId
      * @param string $status
      * @param string|null $message
-     * @param string|null $transactionId
+     * @param string|null $transactionNumber
      */
-    public function updateOrderStatus($orderId, $status, $message = null, $transactionId = null);
+    public function updateOrderStatus($orderId, $status, $message = null, $transactionNumber = null);
 
     /**
      * Add Order Note.
@@ -299,10 +299,10 @@ interface CoreInterface
      * update order status.
      *
      * @param mixed $orderId
-     * @param string|null $transactionId
+     * @param string|null $transactionNumber
      * @throws Exception
      */
-    public function fetchTransactionsAndUpdateOrder($orderId, $transactionId = null);
+    public function fetchTransactionsAndUpdateOrder($orderId, $transactionNumber = null);
 
     /**
      * @param $orderId
