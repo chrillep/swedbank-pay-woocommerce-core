@@ -331,6 +331,14 @@ interface CoreInterface
      */
     public function request($method, $url, $params = []);
 
+	/**
+	 * Check API Credentials.
+	 *
+	 * @return bool Returns true if ok
+	 * @throws Exception
+	 */
+	public function checkApiCredentials();
+
     /**
      * Fetch Payment Info.
      *
@@ -434,6 +442,14 @@ interface CoreInterface
      * @throws Exception
      */
     public function initiateVippsPayment($orderId, $phone);
+
+	/**
+	 * Check Checkout API Credentials.
+	 *
+	 * @return bool Returns true if ok
+	 * @throws Exception
+	 */
+	public function checkCheckoutApiCredentials();
 
     /**
      * Initiate Payment Order Purchase.
