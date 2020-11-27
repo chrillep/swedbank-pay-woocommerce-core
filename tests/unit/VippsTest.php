@@ -4,6 +4,16 @@ use SwedbankPay\Core\Api\Response;
 
 class VippsTest extends TestCase
 {
+	public function testCheckVippsApiCredentials()
+	{
+		try {
+			$this->core->checkVippsApiCredentials();
+			$this->assertTrue(true);
+		} catch (\Exception $e) {
+			$this->assertTrue(false);
+		}
+	}
+
     public function testInitiateVippsPayment()
     {
         $this->gateway->currency = 'NOK';

@@ -6,10 +6,12 @@ class CheckoutTest extends TestCase
 {
 	public function testCheckCheckoutApiCredentials()
 	{
-		$result = $this->core->checkCheckoutApiCredentials();
-		$this->assertTrue($result);
-
-		return $result;
+		try {
+			$this->core->checkCheckoutApiCredentials();
+			$this->assertTrue(true);
+		} catch (\Exception $e) {
+			$this->assertTrue(false);
+		}
 	}
 
     public function testInitiatePaymentOrderPurchase()

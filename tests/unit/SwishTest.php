@@ -4,6 +4,16 @@ use SwedbankPay\Core\Api\Response;
 
 class SwishTest extends TestCase
 {
+	public function testCheckSwishApiCredentials()
+	{
+		try {
+			$this->core->checkSwishApiCredentials();
+			$this->assertTrue(true);
+		} catch (\Exception $e) {
+			$this->assertTrue(false);
+		}
+	}
+
     public function testInitiateSwishPayment()
     {
         $this->gateway->currency = 'SEK';

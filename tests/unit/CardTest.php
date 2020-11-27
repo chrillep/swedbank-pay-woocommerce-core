@@ -4,6 +4,16 @@ use SwedbankPay\Core\Api\Response;
 
 class CardTest extends TestCase
 {
+	public function testCheckCreditCardApiCredentials()
+	{
+		try {
+			$this->core->checkCreditCardApiCredentials();
+			$this->assertTrue(true);
+		} catch (\Exception $e) {
+			$this->assertTrue(false);
+		}
+	}
+
     public function testInitiateCreditCardPayment()
     {
         // Test initialization

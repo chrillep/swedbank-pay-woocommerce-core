@@ -13,20 +13,11 @@ trait Checkout
 	/**
 	 * Check Checkout API Credentials.
 	 *
-	 * @return bool Returns true if ok
+	 * @return void
 	 * @throws Exception
 	 */
 	public function checkCheckoutApiCredentials()
 	{
-		/**
-		 * Perform a POST request to create a payment or paymentorder with invalid data that is known to fail with
-		 * 400 Bad Request.
-		 * This is to ensure that no payments or payment orders are actually created if the request succeeds.
-		 * If the request fails with 401, something is wrong with the credentials.
-		 * If the request fails with 403 something is wrong with the contract.
-		 * If the request fails with 400 Bad Request, credentials and contracts should be OK.
-		 */
-
 		$params = [
 			'paymentorder' => [
 				'operation' => 'Purchase',
@@ -41,15 +32,18 @@ trait Checkout
 			$this->request('POST', '/psp/paymentorders', $params);
 		} catch (Exception $e) {
 			if (400 === $e->getCode()) {
-				return true;
+				return;
 			}
 
-			return false;
-		} catch (\Exception $e) {
-			throw new Exception('API test has been failed.');
+			switch ($e->getCode()) {
+				case 401:
+					throw new Exception('Something is wrong with the credentials.');
+				case 403:
+					throw new Exception('Something is wrong with the contract.');
+			}
 		}
 
-		return false;
+		throw new Exception('API test has been failed.');
 	}
 
     /**

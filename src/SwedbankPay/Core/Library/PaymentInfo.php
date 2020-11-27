@@ -95,48 +95,6 @@ trait PaymentInfo
         }
     }
 
-	/**
-	 * Check API Credentials.
-	 *
-	 * @return bool Returns true if ok
-	 * @throws Exception
-	 */
-	public function checkApiCredentials()
-	{
-		/**
-		 * Perform a POST request to create a payment or paymentorder with invalid data that is known to fail with
-		 * 400 Bad Request.
-		 * This is to ensure that no payments or payment orders are actually created if the request succeeds.
-		 * If the request fails with 401, something is wrong with the credentials.
-		 * If the request fails with 403 something is wrong with the contract.
-		 * If the request fails with 400 Bad Request, credentials and contracts should be OK.
-		 */
-
-		$params = [
-			'payment' => [
-				'operation' => 'Test',
-				'payeeInfo' => [
-					'payeeId' => $this->getConfiguration()->getPayeeId(),
-					'payeeName' => $this->getConfiguration()->getPayeeName(),
-				]
-			]
-		];
-
-		try {
-			$this->request('POST', '/psp/creditcard/payments', $params);
-		} catch (Exception $e) {
-			if (400 === $e->getCode()) {
-				return true;
-			}
-
-			return false;
-		} catch (\Exception $e) {
-			throw new Exception('API test has been failed.');
-		}
-
-		return false;
-	}
-
     /**
      * Fetch Payment Info.
      *

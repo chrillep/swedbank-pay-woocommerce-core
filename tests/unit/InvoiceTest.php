@@ -5,6 +5,16 @@ use SwedbankPay\Core\Exception;
 
 class InvoiceTest extends TestCase
 {
+	public function testCheckInvoiceApiCredentials()
+	{
+		try {
+			$this->core->checkInvoiceApiCredentials();
+			$this->assertTrue(true);
+		} catch (\Exception $e) {
+			$this->assertTrue(false);
+		}
+	}
+
     public function testInitiateInvoicePayment()
     {
         // Test initialization
