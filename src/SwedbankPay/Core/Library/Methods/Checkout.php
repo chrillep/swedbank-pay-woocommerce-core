@@ -29,7 +29,7 @@ trait Checkout
 
 		$params = [
 			'paymentorder' => [
-				'operation' => 'Test',
+				'operation' => 'Purchase',
 				'payeeInfo' => [
 					'payeeId' => $this->getConfiguration()->getPayeeId(),
 					'payeeName' => $this->getConfiguration()->getPayeeName(),
