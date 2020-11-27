@@ -90,7 +90,6 @@ interface PaymentAdapterInterface
 	 *
 	 * @see wc_get_order_statuses()
 	 * @return string
-	 * @throws Exception
 	 */
 	public function getOrderStatus($order_id);
 

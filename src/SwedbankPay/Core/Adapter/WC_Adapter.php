@@ -512,7 +512,6 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 	 *
 	 * @see wc_get_order_statuses()
 	 * @return string
-	 * @throws Exception
 	 */
 	public function getOrderStatus($order_id)
 	{
@@ -523,6 +522,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 				return OrderInterface::STATUS_PENDING;
 			case 'on-hold':
 				return OrderInterface::STATUS_AUTHORIZED;
+			case 'active';
 			case 'completed';
 			case 'processing';
 				return OrderInterface::STATUS_CAPTURED;
@@ -532,8 +532,10 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 				return OrderInterface::STATUS_REFUNDED;
 			case 'failed':
 				return OrderInterface::STATUS_FAILED;
+			case 'pending-cancel':
+			case 'expired':
 			default:
-				throw new Exception('Unable to recognize order status.');
+				return OrderInterface::STATUS_UNKNOWN;
 		}
 	}
 
