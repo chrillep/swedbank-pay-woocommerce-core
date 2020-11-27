@@ -206,10 +206,11 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
      *
      * @param mixed $orderId
      * @param string $status
-     * @param string|null $transactionId
+     * @param string|null $transactionNumber
+     *
      * @return bool
      */
-    public function canUpdateOrderStatus($orderId, $status, $transactionId = null) {
+    public function canUpdateOrderStatus($orderId, $status, $transactionNumber = null) {
         return true;
     }
 
@@ -219,9 +220,9 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * @param mixed $orderId
      * @param string $status
      * @param string|null $message
-     * @param mixed|null $transactionId
+     * @param mixed|null $transactionNumber
      */
-    public function updateOrderStatus($orderId, $status, $message = null, $transactionId = null)
+    public function updateOrderStatus($orderId, $status, $message = null, $transactionNumber = null)
     {
         // @todo
     }

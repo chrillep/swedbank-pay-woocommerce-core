@@ -481,19 +481,19 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      *
      * @param mixed $orderId
      * @param string $status
-     * @param string|null $transactionId
+     * @param string|null $transactionNumber
      * @return bool
      */
-    public function canUpdateOrderStatus($order_id, $status, $transaction_id = null) {
-        if ($transaction_id) {
+    public function canUpdateOrderStatus($order_id, $status, $transactionNumber = null) {
+        if ($transactionNumber) {
             $order = wc_get_order($order_id);
 
-            if ($order->get_transaction_id() === $transaction_id) {
+            if ( $order->get_transaction_id() === $transactionNumber) {
                 $this->log(LogLevel::WARNING,
                     sprintf('Unable to update order status of #%s (%s). Transaction #%s has been processed.',
                         $order_id,
                         $status,
-                        $transaction_id
+                        $transactionNumber
                     )
                 );
 
@@ -545,14 +545,14 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * @param mixed $order_id
      * @param string $status
      * @param string|null $message
-     * @param mixed|null $transaction_id
+     * @param mixed|null $transactionNumber
      */
-    public function updateOrderStatus($order_id, $status, $message = null, $transaction_id = null)
+    public function updateOrderStatus($order_id, $status, $message = null, $transactionNumber = null)
     {
         $order = wc_get_order($order_id);
 
-        if ($transaction_id) {
-            $order->update_meta_data('_transaction_id', $transaction_id);
+        if ($transactionNumber) {
+            $order->update_meta_data('_transaction_id', $transactionNumber);
             $order->save();
         }
 
@@ -578,7 +578,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 $order->update_meta_data('_payex_payment_state', $status);
                 $order->save();
 
-                $order->payment_complete($transaction_id);
+                $order->payment_complete($transactionNumber);
                 $order->add_order_note($message);
                 break;
             case OrderInterface::STATUS_CANCELLED:
