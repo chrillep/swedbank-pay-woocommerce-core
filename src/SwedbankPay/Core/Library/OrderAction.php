@@ -637,12 +637,20 @@ trait OrderAction
                     break;
                 }
 
-                $this->updateOrderStatus(
-                    $orderId,
-                    OrderInterface::STATUS_AUTHORIZED,
-                    'Payment has been authorized.',
-                    $transaction->getNumber()
-                );
+                // Don't change the order status if it was captured before
+                if ($order->getStatus() === OrderInterface::STATUS_CAPTURED) {
+                	$this->addOrderNote(
+		                $orderId,
+		                sprintf('Payment has been authorized. Transaction: %s', $transaction->getNumber())
+	                );
+                } else {
+	                $this->updateOrderStatus(
+		                $orderId,
+		                OrderInterface::STATUS_AUTHORIZED,
+		                sprintf('Payment has been authorized. Transaction: %s', $transaction->getNumber()),
+		                $transaction->getNumber()
+	                );
+                }
 
                 // Save Payment Token
                 if ($order->needsSaveToken()) {
@@ -699,7 +707,7 @@ trait OrderAction
                 $this->updateOrderStatus(
                     $orderId,
                     OrderInterface::STATUS_CAPTURED,
-                    'Payment has been captured.',
+	                sprintf('Payment has been captured. Transaction: %s', $transaction->getNumber()),
                     $transaction->getNumber()
                 );
                 break;
@@ -729,7 +737,7 @@ trait OrderAction
                 $this->updateOrderStatus(
                     $orderId,
                     OrderInterface::STATUS_CAPTURED,
-                    'Payment has been cancelled.',
+	                sprintf('Payment has been cancelled. Transaction: %s', $transaction->getNumber()),
                     $transaction->getNumber()
                 );
                 break;
