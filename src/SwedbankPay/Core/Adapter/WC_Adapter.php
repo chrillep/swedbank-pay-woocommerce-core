@@ -518,6 +518,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 		$order = wc_get_order($order_id);
 
 		switch ($order->get_status()) {
+			case 'checkout-draft':
 			case 'pending':
 				return OrderInterface::STATUS_PENDING;
 			case 'on-hold':
