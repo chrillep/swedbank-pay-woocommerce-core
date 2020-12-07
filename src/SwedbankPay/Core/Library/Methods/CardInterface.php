@@ -11,53 +11,55 @@ use SwedbankPay\Core\Exception;
  */
 interface CardInterface
 {
-	const OPERATION_UNSCHEDULED_PURCHASE = 'UnscheduledPurchase';
-	const OPERATION_FINANCING_CONSUMER = 'FinancingConsumer';
-	const TYPE_CREDITCARD = 'CreditCard';
+    const OPERATION_UNSCHEDULED_PURCHASE = 'UnscheduledPurchase';
+    const OPERATION_FINANCING_CONSUMER = 'FinancingConsumer';
+    const TYPE_CREDITCARD = 'CreditCard';
 
-	/**
-	 * Initiate a Credit Card Payment
-	 *
-	 * @param mixed $orderId
-	 * @param bool $generateToken
-	 * @param string $paymentToken
-	 *
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function initiateCreditCardPayment($orderId, $generateToken, $paymentToken);
+    const CARD_PAYMENTS_URL = '/psp/creditcard/payments';
 
-	/**
-	 * Initiate Verify Card Payment
-	 *
-	 * @param mixed $orderId
-	 *
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function initiateVerifyCreditCardPayment($orderId);
+    /**
+     * Initiate a Credit Card Payment
+     *
+     * @param mixed $orderId
+     * @param bool $generateToken
+     * @param string $paymentToken
+     *
+     * @return Response
+     * @throws Exception
+     */
+    public function initiateCreditCardPayment($orderId, $generateToken, $paymentToken);
 
-	/**
-	 * Initiate a CreditCard Recurrent Payment
-	 *
-	 * @param mixed $orderId
-	 * @param string $recurrenceToken
-	 * @param string|null $paymentToken
-	 *
-	 * @return Response
-	 * @throws \Exception
-	 */
-	public function initiateCreditCardRecur($orderId, $recurrenceToken, $paymentToken = null);
+    /**
+     * Initiate Verify Card Payment
+     *
+     * @param mixed $orderId
+     *
+     * @return Response
+     * @throws Exception
+     */
+    public function initiateVerifyCreditCardPayment($orderId);
 
-	/**
-	 * Initiate a CreditCard Unscheduled Purchase
-	 *
-	 * @param mixed $orderId
-	 * @param string $recurrenceToken
-	 * @param string|null $paymentToken
-	 *
-	 * @return Response
-	 * @throws \Exception
-	 */
-	public function initiateCreditCardUnscheduledPurchase($orderId, $recurrenceToken, $paymentToken = null);
+    /**
+     * Initiate a CreditCard Recurrent Payment
+     *
+     * @param mixed $orderId
+     * @param string $recurrenceToken
+     * @param string|null $paymentToken
+     *
+     * @return Response
+     * @throws \Exception
+     */
+    public function initiateCreditCardRecur($orderId, $recurrenceToken, $paymentToken = null);
+
+    /**
+     * Initiate a CreditCard Unscheduled Purchase
+     *
+     * @param mixed $orderId
+     * @param string $recurrenceToken
+     * @param string|null $paymentToken
+     *
+     * @return Response
+     * @throws \Exception
+     */
+    public function initiateCreditCardUnscheduledPurchase($orderId, $recurrenceToken, $paymentToken = null);
 }

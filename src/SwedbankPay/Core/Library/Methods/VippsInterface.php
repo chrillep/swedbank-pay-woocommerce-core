@@ -10,6 +10,9 @@ use SwedbankPay\Core\Exception;
  */
 interface VippsInterface
 {
+	const PRICE_TYPE_VIPPS = 'Vipps';
+	const VIPPS_PAYMENTS_URL = '/psp/vipps/payments';
+
 	/**
 	 * Initiate Vipps Payment.
 	 *

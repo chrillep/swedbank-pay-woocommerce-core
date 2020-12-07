@@ -11,26 +11,28 @@ use SwedbankPay\Core\Exception;
  */
 interface SwishInterface
 {
-	/**
-	 * Initiate Swish Payment
-	 *
-	 * @param mixed $orderId
-	 * @param string $phone
-	 * @param bool $ecomOnlyEnabled
-	 *
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function initiateSwishPayment($orderId, $phone, $ecomOnlyEnabled = true);
+    const SWISH_PAYMENTS_URL = '/psp/swish/payments';
 
-	/**
-	 * initiate Swish Payment Direct
-	 *
-	 * @param string $saleHref
-	 * @param string $phone
-	 *
-	 * @return mixed
-	 * @throws Exception
-	 */
-	public function initiateSwishPaymentDirect($saleHref, $phone);
+    /**
+     * Initiate Swish Payment
+     *
+     * @param mixed $orderId
+     * @param string $phone
+     * @param bool $ecomOnlyEnabled
+     *
+     * @return Response
+     * @throws Exception
+     */
+    public function initiateSwishPayment($orderId, $phone, $ecomOnlyEnabled = true);
+
+    /**
+     * initiate Swish Payment Direct
+     *
+     * @param string $saleHref
+     * @param string $phone
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    public function initiateSwishPaymentDirect($saleHref, $phone);
 }

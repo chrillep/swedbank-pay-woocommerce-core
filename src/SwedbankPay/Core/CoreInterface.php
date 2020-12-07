@@ -103,35 +103,35 @@ interface CoreInterface
      */
     public function canUpdateOrderStatus($orderId, $status, $transactionNumber = null);
 
-	/**
-	 * Get Order Status.
-	 *
-	 * @param mixed $orderId
-	 *
-	 * @return string
-	 * @throws Exception
-	 */
-	public function getOrderStatus($orderId);
+    /**
+     * Get Order Status.
+     *
+     * @param mixed $orderId
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function getOrderStatus($orderId);
 
-	/**
-	 * Set Payment Id to Order.
-	 *
-	 * @param mixed $orderId
-	 * @param string $paymentId
-	 *
-	 * @return void
-	 */
-	public function setPaymentId($orderId, $paymentId);
+    /**
+     * Set Payment Id to Order.
+     *
+     * @param mixed $orderId
+     * @param string $paymentId
+     *
+     * @return void
+     */
+    public function setPaymentId($orderId, $paymentId);
 
-	/**
-	 * Set Payment Order Id to Order.
-	 *
-	 * @param mixed $orderId
-	 * @param string $paymentOrderId
-	 *
-	 * @return void
-	 */
-	public function setPaymentOrderId($orderId, $paymentOrderId);
+    /**
+     * Set Payment Order Id to Order.
+     *
+     * @param mixed $orderId
+     * @param string $paymentOrderId
+     *
+     * @return void
+     */
+    public function setPaymentOrderId($orderId, $paymentOrderId);
 
     /**
      * Update Order Status.
@@ -151,14 +151,14 @@ interface CoreInterface
      */
     public function addOrderNote($orderId, $message);
 
-	/**
-	 * Get Payment Method.
-	 *
-	 * @param mixed $orderId
-	 *
-	 * @return string|null Returns method or null if not exists
-	 */
-	public function getPaymentMethod($orderId);
+    /**
+     * Get Payment Method.
+     *
+     * @param mixed $orderId
+     *
+     * @return string|null Returns method or null if not exists
+     */
+    public function getPaymentMethod($orderId);
 
     /**
      * Fetch Transactions related to specific order, process transactions and

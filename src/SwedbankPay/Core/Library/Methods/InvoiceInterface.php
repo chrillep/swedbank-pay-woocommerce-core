@@ -11,88 +11,90 @@ use SwedbankPay\Core\Exception;
  */
 interface InvoiceInterface
 {
-	/**
-	 * @param mixed $orderId
-	 *
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function initiateInvoicePayment($orderId);
+    const INVOICE_PAYMENTS_URL = '/psp/invoice/payments';
 
-	/**
-	 * Get Approved Legal Address.
-	 *
-	 * @param string $legalAddressHref
-	 * @param string $socialSecurityNumber
-	 * @param string $postCode
-	 *
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function getApprovedLegalAddress($legalAddressHref, $socialSecurityNumber, $postCode);
+    /**
+     * @param mixed $orderId
+     *
+     * @return Response
+     * @throws Exception
+     */
+    public function initiateInvoicePayment($orderId);
 
-	/**
-	 * Initiate a Financing Consumer Transaction
-	 *
-	 * @param string $authorizeHref
-	 * @param string $orderId
-	 * @param string $ssn
-	 * @param string $addressee
-	 * @param string $coAddress
-	 * @param string $streetAddress
-	 * @param string $zipCode
-	 * @param string $city
-	 * @param string $countryCode
-	 *
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function transactionFinancingConsumer(
-		$authorizeHref,
-		$orderId,
-		$ssn,
-		$addressee,
-		$coAddress,
-		$streetAddress,
-		$zipCode,
-		$city,
-		$countryCode
-	);
+    /**
+     * Get Approved Legal Address.
+     *
+     * @param string $legalAddressHref
+     * @param string $socialSecurityNumber
+     * @param string $postCode
+     *
+     * @return Response
+     * @throws Exception
+     */
+    public function getApprovedLegalAddress($legalAddressHref, $socialSecurityNumber, $postCode);
 
-	/**
-	 * Capture Invoice.
-	 *
-	 * @param mixed $orderId
-	 * @param int|float $amount
-	 * @param int|float $vatAmount
-	 * @param array $items
-	 *
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function captureInvoice($orderId, $amount = null, $vatAmount = 0, array $items = []);
+    /**
+     * Initiate a Financing Consumer Transaction
+     *
+     * @param string $authorizeHref
+     * @param string $orderId
+     * @param string $ssn
+     * @param string $addressee
+     * @param string $coAddress
+     * @param string $streetAddress
+     * @param string $zipCode
+     * @param string $city
+     * @param string $countryCode
+     *
+     * @return Response
+     * @throws Exception
+     */
+    public function transactionFinancingConsumer(
+        $authorizeHref,
+        $orderId,
+        $ssn,
+        $addressee,
+        $coAddress,
+        $streetAddress,
+        $zipCode,
+        $city,
+        $countryCode
+    );
 
-	/**
-	 * Cancel Invoice.
-	 *
-	 * @param mixed $orderId
-	 * @param int|float|null $amount
-	 * @param int|float $vatAmount
-	 *
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function cancelInvoice($orderId, $amount = null, $vatAmount = 0);
+    /**
+     * Capture Invoice.
+     *
+     * @param mixed $orderId
+     * @param int|float $amount
+     * @param int|float $vatAmount
+     * @param array $items
+     *
+     * @return Response
+     * @throws Exception
+     */
+    public function captureInvoice($orderId, $amount = null, $vatAmount = 0, array $items = []);
 
-	/**
-	 * Refund Invoice.
-	 *
-	 * @param mixed $orderId
-	 * @param int|float|null $amount
-	 * @param int|float $vatAmount
-	 *
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function refundInvoice($orderId, $amount = null, $vatAmount = 0);
+    /**
+     * Cancel Invoice.
+     *
+     * @param mixed $orderId
+     * @param int|float|null $amount
+     * @param int|float $vatAmount
+     *
+     * @return Response
+     * @throws Exception
+     */
+    public function cancelInvoice($orderId, $amount = null, $vatAmount = 0);
+
+    /**
+     * Refund Invoice.
+     *
+     * @param mixed $orderId
+     * @param int|float|null $amount
+     * @param int|float $vatAmount
+     *
+     * @return Response
+     * @throws Exception
+     */
+    public function refundInvoice($orderId, $amount = null, $vatAmount = 0);
 }
