@@ -50,6 +50,8 @@ trait PaymentInfo
         try {
             /** @var \SwedbankPay\Api\Response $response */
             $client = $this->client->request($method, $url, $params);
+
+	        //$codeClass = (int)($this->client->getResponseCode() / 100);
             $response_body = $client->getResponseBody();
             $result = json_decode($response_body, true);
             $time = microtime(true) - $start;
@@ -58,6 +60,8 @@ trait PaymentInfo
 
             return new Response($result);
         } catch (\SwedbankPay\Api\Client\Exception $e) {
+        	$httpCode = (int) $this->client->getResponseCode();
+
             $time = microtime(true) - $start;
             $this->log(LogLevel::DEBUG,
                 sprintf('[%.4F] Client Exception. Check debug info: %s', $time, $this->client->getDebugInfo()));
@@ -84,7 +88,7 @@ trait PaymentInfo
                     }
                 }
 
-                throw new Exception($message, 0, null, $data['problems']);
+                throw new Exception($message, $httpCode, null, $data['problems']);
             }
 
             throw new Exception('API Exception. Please check logs');

@@ -84,7 +84,10 @@ trait Trustly
 
             return new Response($responseService->getResponseData());
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }

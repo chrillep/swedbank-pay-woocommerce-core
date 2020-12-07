@@ -16,140 +16,6 @@ interface CoreInterface
     const OPERATION_PURCHASE = 'Purchase';
     const OPERATION_VERIFY = 'Verify';
     const OPERATION_RECUR = 'Recur';
-    const OPERATION_UNSCHEDULED_PURCHASE = 'UnscheduledPurchase';
-    const OPERATION_FINANCING_CONSUMER = 'FinancingConsumer';
-    const TYPE_CREDITCARD = 'CreditCard';
-
-    /**
-     * Initiate a Credit Card Payment
-     *
-     * @param mixed $orderId
-     * @param bool $generateToken
-     * @param string $paymentToken
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function initiateCreditCardPayment($orderId, $generateToken, $paymentToken);
-
-    /**
-     * Initiate Verify Card Payment
-     *
-     * @param mixed $orderId
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function initiateVerifyCreditCardPayment($orderId);
-
-    /**
-     * Initiate a CreditCard Recurrent Payment
-     *
-     * @param mixed $orderId
-     * @param string $recurrenceToken
-     * @param string|null $paymentToken
-     *
-     * @return Response
-     * @throws \Exception
-     */
-    public function initiateCreditCardRecur($orderId, $recurrenceToken, $paymentToken = null);
-
-    /**
-     * Initiate a CreditCard Unscheduled Purchase
-     *
-     * @param mixed $orderId
-     * @param string $recurrenceToken
-     * @param string|null $paymentToken
-     *
-     * @return Response
-     * @throws \Exception
-     */
-    public function initiateCreditCardUnscheduledPurchase($orderId, $recurrenceToken, $paymentToken = null);
-
-    /**
-     * @param mixed $orderId
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function initiateInvoicePayment($orderId);
-
-    /**
-     * Get Approved Legal Address.
-     *
-     * @param string $legalAddressHref
-     * @param string $socialSecurityNumber
-     * @param string $postCode
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function getApprovedLegalAddress($legalAddressHref, $socialSecurityNumber, $postCode);
-
-    /**
-     * Initiate a Financing Consumer Transaction
-     *
-     * @param string $authorizeHref
-     * @param string $orderId
-     * @param string $ssn
-     * @param string $addressee
-     * @param string $coAddress
-     * @param string $streetAddress
-     * @param string $zipCode
-     * @param string $city
-     * @param string $countryCode
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function transactionFinancingConsumer(
-        $authorizeHref,
-        $orderId,
-        $ssn,
-        $addressee,
-        $coAddress,
-        $streetAddress,
-        $zipCode,
-        $city,
-        $countryCode
-    );
-
-    /**
-     * Capture Invoice.
-     *
-     * @param mixed $orderId
-     * @param int|float $amount
-     * @param int|float $vatAmount
-     * @param array $items
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function captureInvoice($orderId, $amount = null, $vatAmount = 0, array $items = []);
-
-    /**
-     * Cancel Invoice.
-     *
-     * @param mixed $orderId
-     * @param int|float|null $amount
-     * @param int|float $vatAmount
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function cancelInvoice($orderId, $amount = null, $vatAmount = 0);
-
-    /**
-     * Refund Invoice.
-     *
-     * @param mixed $orderId
-     * @param int|float|null $amount
-     * @param int|float $vatAmount
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function refundInvoice($orderId, $amount = null, $vatAmount = 0);
 
     /**
      * Can Capture.
@@ -237,35 +103,35 @@ interface CoreInterface
      */
     public function canUpdateOrderStatus($orderId, $status, $transactionNumber = null);
 
-	/**
-	 * Get Order Status.
-	 *
-	 * @param mixed $orderId
-	 *
-	 * @return string
-	 * @throws Exception
-	 */
-	public function getOrderStatus($orderId);
+    /**
+     * Get Order Status.
+     *
+     * @param mixed $orderId
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function getOrderStatus($orderId);
 
-	/**
-	 * Set Payment Id to Order.
-	 *
-	 * @param mixed $orderId
-	 * @param string $paymentId
-	 *
-	 * @return void
-	 */
-	public function setPaymentId($orderId, $paymentId);
+    /**
+     * Set Payment Id to Order.
+     *
+     * @param mixed $orderId
+     * @param string $paymentId
+     *
+     * @return void
+     */
+    public function setPaymentId($orderId, $paymentId);
 
-	/**
-	 * Set Payment Order Id to Order.
-	 *
-	 * @param mixed $orderId
-	 * @param string $paymentOrderId
-	 *
-	 * @return void
-	 */
-	public function setPaymentOrderId($orderId, $paymentOrderId);
+    /**
+     * Set Payment Order Id to Order.
+     *
+     * @param mixed $orderId
+     * @param string $paymentOrderId
+     *
+     * @return void
+     */
+    public function setPaymentOrderId($orderId, $paymentOrderId);
 
     /**
      * Update Order Status.
@@ -285,14 +151,14 @@ interface CoreInterface
      */
     public function addOrderNote($orderId, $message);
 
-	/**
-	 * Get Payment Method.
-	 *
-	 * @param mixed $orderId
-	 *
-	 * @return string|null Returns method or null if not exists
-	 */
-	public function getPaymentMethod($orderId);
+    /**
+     * Get Payment Method.
+     *
+     * @param mixed $orderId
+     *
+     * @return string|null Returns method or null if not exists
+     */
+    public function getPaymentMethod($orderId);
 
     /**
      * Fetch Transactions related to specific order, process transactions and
@@ -376,29 +242,6 @@ interface CoreInterface
     public function fetchAuthorizationList($paymentIdUrl, $expand = null);
 
     /**
-     * Initiate Swish Payment
-     *
-     * @param mixed $orderId
-     * @param string $phone
-     * @param bool $ecomOnlyEnabled
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function initiateSwishPayment($orderId, $phone, $ecomOnlyEnabled = true);
-
-    /**
-     * initiate Swish Payment Direct
-     *
-     * @param string $saleHref
-     * @param string $phone
-     *
-     * @return mixed
-     * @throws Exception
-     */
-    public function initiateSwishPaymentDirect($saleHref, $phone);
-
-    /**
      * Save Transaction Data.
      *
      * @param mixed $orderId
@@ -423,119 +266,6 @@ interface CoreInterface
      * @return bool|Transaction
      */
     public function findTransaction($field, $value);
-
-    /**
-     * Initiate Vipps Payment.
-     *
-     * @param mixed $orderId
-     * @param string $phone
-     *
-     * @return mixed
-     * @throws Exception
-     */
-    public function initiateVippsPayment($orderId, $phone);
-
-    /**
-     * Initiate Payment Order Purchase.
-     *
-     * @param mixed $orderId
-     * @param string|null $consumerProfileRef
-     * @param bool $generateRecurrenceToken
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function initiatePaymentOrderPurchase(
-        $orderId,
-        $consumerProfileRef = null,
-        $generateRecurrenceToken = false
-    );
-
-    /**
-     * Initiate Payment Order Verify
-     *
-     * @param mixed $orderId
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function initiatePaymentOrderVerify($orderId);
-
-    /**
-     * Initiate Payment Order Recurrent Payment
-     *
-     * @param mixed $orderId
-     * @param string $recurrenceToken
-     *
-     * @return Response
-     * @throws \Exception
-     */
-    public function initiatePaymentOrderRecur($orderId, $recurrenceToken);
-
-    /**
-     * @param string $updateUrl
-     * @param mixed $orderId
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function updatePaymentOrder($updateUrl, $orderId);
-
-    /**
-     * Get Payment ID url by Payment Order.
-     *
-     * @param string $paymentOrderId
-     *
-     * @return string|false
-     */
-    public function getPaymentIdByPaymentOrder($paymentOrderId);
-
-    /**
-     * Get Current Payment Resource.
-     * The currentpayment resource displays the payment that are active within the payment order container.
-     *
-     * @param string $paymentOrderId
-     * @return array|false
-     */
-    public function getCheckoutCurrentPayment($paymentOrderId);
-
-    /**
-     * Capture Checkout.
-     *
-     * @param mixed $orderId
-     * @param int|float $amount
-     * @param int|float $vatAmount
-     * @param array $items
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function captureCheckout($orderId, $amount = null, $vatAmount = 0, array $items = []);
-
-    /**
-     * Cancel Checkout.
-     *
-     * @param mixed $orderId
-     * @param int|float|null $amount
-     * @param int|float $vatAmount
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function cancelCheckout($orderId, $amount = null, $vatAmount = 0);
-
-    /**
-     * Refund Checkout.
-     *
-     * @param mixed $orderId
-     * @param int|float|null $amount
-     * @param int|float $vatAmount
-     * @param array $items
-     *
-     * @return Response
-     * @throws Exception
-     */
-    public function refundCheckout($orderId, $amount = null, $vatAmount = 0, array $items = []);
 
     /**
      * Log a message.

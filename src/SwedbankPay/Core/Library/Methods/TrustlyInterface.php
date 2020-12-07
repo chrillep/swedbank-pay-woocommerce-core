@@ -12,7 +12,7 @@ use SwedbankPay\Core\Exception;
 interface TrustlyInterface
 {
     const PRICE_TYPE_TRUSTLY = 'Trustly';
-    const PAYMENTS_URL = '/psp/trustly/payments';
+    const TRUSTLY_PAYMENTS_URL = '/psp/trustly/payments';
 
     /**
      * Initiate Trustly Payment

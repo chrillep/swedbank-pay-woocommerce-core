@@ -32,7 +32,7 @@ trait Vipps
                 'currency' => $order->getCurrency(),
                 'prices' => [
                     [
-                        'type' => 'Vipps',
+                        'type' => self::PRICE_TYPE_VIPPS,
                         'amount' => $order->getAmountInCents(),
                         'vatAmount' => $order->getVatAmountInCents()
                     ]
@@ -59,9 +59,12 @@ trait Vipps
         ];
 
         try {
-            $result = $this->request('POST', '/psp/vipps/payments', $params);
+            $result = $this->request('POST', self::VIPPS_PAYMENTS_URL, $params);
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }

@@ -67,9 +67,12 @@ trait Swish
         ];
 
         try {
-            $result = $this->request('POST', '/psp/swish/payments', $params);
+            $result = $this->request('POST', self::SWISH_PAYMENTS_URL, $params);
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }
@@ -97,7 +100,10 @@ trait Swish
         try {
             $result = $this->request('POST', $saleHref, $params);
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }

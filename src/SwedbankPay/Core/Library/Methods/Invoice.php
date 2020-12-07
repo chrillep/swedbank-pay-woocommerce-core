@@ -58,9 +58,12 @@ trait Invoice
         ];
 
         try {
-            $result = $this->request('POST', '/psp/invoice/payments', $params);
+            $result = $this->request('POST', self::INVOICE_PAYMENTS_URL, $params);
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }
@@ -90,7 +93,10 @@ trait Invoice
         try {
             $result = $this->request('POST', $legalAddressHref, $params);
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }
@@ -102,37 +108,40 @@ trait Invoice
 
     public function createApprovedLegalAddress($orderId, $socialSecurityNumber, $postCode)
     {
-	    /** @var Order $order */
-	    $order = $this->getOrder($orderId);
+        /** @var Order $order */
+        $order = $this->getOrder($orderId);
 
-	    $paymentId = $order->getPaymentId();
-	    if (empty($paymentId)) {
-		    throw new Exception('Unable to get payment ID');
-	    }
+        $paymentId = $order->getPaymentId();
+        if (empty($paymentId)) {
+            throw new Exception('Unable to get payment ID');
+        }
 
-	    $href = $this->fetchPaymentInfo($paymentId)->getOperationByRel('create-approved-legal-address');
-	    if (empty($href)) {
-		    throw new Exception('"Create approved legal address" is unavailable');
-	    }
+        $href = $this->fetchPaymentInfo($paymentId)->getOperationByRel('create-approved-legal-address');
+        if (empty($href)) {
+            throw new Exception('"Create approved legal address" is unavailable');
+        }
 
-	    $params = [
-		    'addressee' => [
-			    'socialSecurityNumber' => $socialSecurityNumber,
-			    'zipCode' => str_replace(' ', '', $postCode)
-		    ]
-	    ];
+        $params = [
+            'addressee' => [
+                'socialSecurityNumber' => $socialSecurityNumber,
+                'zipCode' => str_replace(' ', '', $postCode)
+            ]
+        ];
 
-	    try {
-		    $result = $this->request('POST', $href, $params);
-	    } catch (\Exception $e) {
-		    $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+        try {
+            $result = $this->request('POST', $href, $params);
+        } catch (\Exception $e) {
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
-		    throw new Exception($e->getMessage());
-	    }
+            throw new Exception($e->getMessage());
+        }
 
-	    // @todo Implement LegalAddress class
+        // @todo Implement LegalAddress class
 
-	    return $result;
+        return $result;
     }
 
     /**
@@ -190,7 +199,10 @@ trait Invoice
         try {
             $result = $this->request('POST', $authorizeHref, $params);
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }
@@ -237,16 +249,16 @@ trait Invoice
         $itemDescriptions = [];
         $vatSummary = [];
         foreach ($items as $item) {
-	        $itemDescriptions[] = [
-	        	'amount' => $item[OrderItemInterface::FIELD_AMOUNT],
-		        'description' => $item[OrderItemInterface::FIELD_NAME]
-	        ];
+            $itemDescriptions[] = [
+                'amount' => $item[OrderItemInterface::FIELD_AMOUNT],
+                'description' => $item[OrderItemInterface::FIELD_NAME]
+            ];
 
-	        $vatSummary[] = [
-	        	'amount' => $item[OrderItemInterface::FIELD_AMOUNT],
-		        'vatPercent' => $item[OrderItemInterface::FIELD_VAT_PERCENT],
-		        'vatAmount' => $item[OrderItemInterface::FIELD_VAT_AMOUNT]
-	        ];
+            $vatSummary[] = [
+                'amount' => $item[OrderItemInterface::FIELD_AMOUNT],
+                'vatPercent' => $item[OrderItemInterface::FIELD_VAT_PERCENT],
+                'vatAmount' => $item[OrderItemInterface::FIELD_VAT_AMOUNT]
+            ];
         }
 
         $params = [
@@ -272,7 +284,7 @@ trait Invoice
                 $this->updateOrderStatus(
                     $orderId,
                     OrderInterface::STATUS_CAPTURED,
-	                sprintf('Transaction is captured. Amount: %s', $amount),
+                    sprintf('Transaction is captured. Amount: %s', $amount),
                     $transaction['number']
                 );
                 break;
@@ -280,7 +292,7 @@ trait Invoice
                 $this->updateOrderStatus(
                     $orderId,
                     OrderInterface::STATUS_AUTHORIZED,
-	                sprintf('Transaction capture status: %s. Amount: %s', $transaction['state'], $amount)
+                    sprintf('Transaction capture status: %s. Amount: %s', $transaction['state'], $amount)
                 );
                 break;
             case 'Failed':
@@ -422,16 +434,16 @@ trait Invoice
             case 'Completed':
                 $info = $this->fetchPaymentInfo($paymentId);
 
-	            // Check if the payment was refund fully
-	            $isFullRefund = false;
-	            if (!isset($info['payment']['remainingReversalAmount'])) {
-		            // Failback if `remainingReversalAmount` is missing
-		            if (bccomp($order->getAmount(), $amount, 2) === 0) {
-			            $isFullRefund = true;
-		            }
-	            } elseif ((int) $info['payment']['remainingReversalAmount'] === 0) {
-		            $isFullRefund = true;
-	            }
+                // Check if the payment was refund fully
+                $isFullRefund = false;
+                if (!isset($info['payment']['remainingReversalAmount'])) {
+                    // Failback if `remainingReversalAmount` is missing
+                    if (bccomp($order->getAmount(), $amount, 2) === 0) {
+                        $isFullRefund = true;
+                    }
+                } elseif ((int) $info['payment']['remainingReversalAmount'] === 0) {
+                    $isFullRefund = true;
+                }
 
                 if ($isFullRefund) {
                     $this->updateOrderStatus(
