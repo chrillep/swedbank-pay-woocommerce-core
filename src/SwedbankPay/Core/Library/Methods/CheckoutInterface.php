@@ -12,14 +12,6 @@ use SwedbankPay\Core\Exception;
 interface CheckoutInterface
 {
 	/**
-	 * Check Checkout API Credentials.
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
-	public function checkCheckoutApiCredentials();
-
-	/**
 	 * Initiate Payment Order Purchase.
 	 *
 	 * @param mixed $orderId

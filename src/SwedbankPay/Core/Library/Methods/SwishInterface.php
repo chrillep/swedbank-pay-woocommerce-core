@@ -12,14 +12,6 @@ use SwedbankPay\Core\Exception;
 interface SwishInterface
 {
 	/**
-	 * Check Swish API Credentials.
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
-	public function checkSwishApiCredentials();
-
-	/**
 	 * Initiate Swish Payment
 	 *
 	 * @param mixed $orderId

@@ -11,14 +11,6 @@ use SwedbankPay\Core\Exception;
 interface VippsInterface
 {
 	/**
-	 * Check Vipps API Credentials.
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
-	public function checkVippsApiCredentials();
-
-	/**
 	 * Initiate Vipps Payment.
 	 *
 	 * @param mixed $orderId

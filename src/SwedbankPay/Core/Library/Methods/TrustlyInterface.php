@@ -14,14 +14,6 @@ interface TrustlyInterface
     const PRICE_TYPE_TRUSTLY = 'Trustly';
     const PAYMENTS_URL = '/psp/trustly/payments';
 
-	/**
-	 * Check Trustly API Credentials.
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
-	public function checkTrustlyApiCredentials();
-
     /**
      * Initiate Trustly Payment
      *

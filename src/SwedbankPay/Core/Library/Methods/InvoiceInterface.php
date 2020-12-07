@@ -12,14 +12,6 @@ use SwedbankPay\Core\Exception;
 interface InvoiceInterface
 {
 	/**
-	 * Check Invoice API Credentials.
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
-	public function checkInvoiceApiCredentials();
-
-	/**
 	 * @param mixed $orderId
 	 *
 	 * @return Response

@@ -11,42 +11,6 @@ use SwedbankPay\Core\OrderItemInterface;
 
 trait Invoice
 {
-	/**
-	 * Check Invoice API Credentials.
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
-	public function checkInvoiceApiCredentials()
-	{
-		$params = [
-			'payment' => [
-				'operation' => 'Test',
-				'payeeInfo' => [
-					'payeeId' => $this->getConfiguration()->getPayeeId(),
-					'payeeName' => $this->getConfiguration()->getPayeeName(),
-				]
-			]
-		];
-
-		try {
-			$this->request('POST', '/psp/invoice/payments', $params);
-		} catch (Exception $e) {
-			if (400 === $e->getCode()) {
-				return;
-			}
-
-			switch ($e->getCode()) {
-				case 401:
-					throw new Exception('Something is wrong with the credentials.');
-				case 403:
-					throw new Exception('Something is wrong with the contract.');
-			}
-		}
-
-		throw new Exception('API test has been failed.');
-	}
-
     /**
      * @param mixed $orderId
      *

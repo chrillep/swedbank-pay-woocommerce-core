@@ -10,42 +10,6 @@ use SwedbankPay\Core\OrderInterface;
 
 trait Checkout
 {
-	/**
-	 * Check Checkout API Credentials.
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
-	public function checkCheckoutApiCredentials()
-	{
-		$params = [
-			'paymentorder' => [
-				'operation' => 'Purchase',
-				'payeeInfo' => [
-					'payeeId' => $this->getConfiguration()->getPayeeId(),
-					'payeeName' => $this->getConfiguration()->getPayeeName(),
-				]
-			]
-		];
-
-		try {
-			$this->request('POST', '/psp/paymentorders', $params);
-		} catch (Exception $e) {
-			if (400 === $e->getCode()) {
-				return;
-			}
-
-			switch ($e->getCode()) {
-				case 401:
-					throw new Exception('Something is wrong with the credentials.');
-				case 403:
-					throw new Exception('Something is wrong with the contract.');
-			}
-		}
-
-		throw new Exception('API test has been failed.');
-	}
-
     /**
      * Initiate Payment Order Purchase.
      *

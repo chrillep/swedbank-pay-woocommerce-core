@@ -16,14 +16,6 @@ interface CardInterface
 	const TYPE_CREDITCARD = 'CreditCard';
 
 	/**
-	 * Check API Credentials.
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
-	public function checkCreditCardApiCredentials();
-
-	/**
 	 * Initiate a Credit Card Payment
 	 *
 	 * @param mixed $orderId

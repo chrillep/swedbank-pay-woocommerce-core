@@ -19,14 +19,6 @@ interface MobilepayInterface
 
     const PAYMENT_URL = '/psp/mobilepay/payments';
 
-	/**
-	 * Check Mobilepay API Credentials.
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
-	public function checkMobilepayApiCredentials();
-
 
 	/**
 	 * Initiate Mobilepay Payment

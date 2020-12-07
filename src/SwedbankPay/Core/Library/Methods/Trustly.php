@@ -19,42 +19,6 @@ use SwedbankPay\Api\Service\Data\ResponseInterface as ResponseServiceInterface;
 
 trait Trustly
 {
-	/**
-	 * Check Trustly API Credentials.
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
-	public function checkTrustlyApiCredentials()
-	{
-		$params = [
-			'payment' => [
-				'operation' => 'Test',
-				'payeeInfo' => [
-					'payeeId' => $this->getConfiguration()->getPayeeId(),
-					'payeeName' => $this->getConfiguration()->getPayeeName(),
-				]
-			]
-		];
-
-		try {
-			$this->request('POST', '/psp/trustly/payments', $params);
-		} catch (Exception $e) {
-			if (400 === $e->getCode()) {
-				return;
-			}
-
-			switch ($e->getCode()) {
-				case 401:
-					throw new Exception('Something is wrong with the credentials.');
-				case 403:
-					throw new Exception('Something is wrong with the contract.');
-			}
-		}
-
-		throw new Exception('API test has been failed.');
-	}
-
     /**
      * Initiate Trustly Payment
      *
