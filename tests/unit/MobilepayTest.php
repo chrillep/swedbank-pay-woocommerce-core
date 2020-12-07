@@ -22,16 +22,6 @@ class MobilepayTest extends TestCase
         $this->core = new Core($this->adapter);
     }
 
-	public function testCheckMobilepayApiCredentials()
-	{
-		try {
-			$this->core->checkMobilepayApiCredentials();
-			$this->assertTrue(true);
-		} catch (\Exception $e) {
-			$this->assertTrue(false);
-		}
-	}
-
     public function testInitiateMobilepayPayment()
     {
         $this->gateway->currency = 'DDK';

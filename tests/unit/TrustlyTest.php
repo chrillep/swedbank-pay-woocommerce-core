@@ -4,16 +4,6 @@ use SwedbankPay\Core\Api\Response;
 
 class TrustlyTest extends TestCase
 {
-	public function testCheckTrustlyApiCredentials()
-	{
-		try {
-			$this->core->checkTrustlyApiCredentials();
-			$this->assertTrue(true);
-		} catch (\Exception $e) {
-			$this->assertTrue(false);
-		}
-	}
-
     public function testInitiateTrustlyPayment()
     {
         $this->gateway->currency = 'SEK';

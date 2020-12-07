@@ -4,16 +4,6 @@ use SwedbankPay\Core\Api\Response;
 
 class CheckoutTest extends TestCase
 {
-	public function testCheckCheckoutApiCredentials()
-	{
-		try {
-			$this->core->checkCheckoutApiCredentials();
-			$this->assertTrue(true);
-		} catch (\Exception $e) {
-			$this->assertTrue(false);
-		}
-	}
-
     public function testInitiatePaymentOrderPurchase()
     {
         // Test initialization
