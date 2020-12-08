@@ -1,3 +1,10 @@
+Version 2.1.0
+* Add `checkout-draft` status
+* Don't change the order status if it was captured before
+* Use $transactionNumber as parameter name
+* Update `getOrderStatus`. Use unknown order status if needs
+* Update interfaces
+
 Version 2.0.0
 * Make order as "refunded" on full refund only
 * Make `log()` to be public
