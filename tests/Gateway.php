@@ -5,7 +5,7 @@ class Gateway
     /**
      * @var string
      */
-    public $merchant_token = MERCHANT_TOKEN;
+    public $access_token = ACCESS_TOKEN;
 
     /**
      * @var string

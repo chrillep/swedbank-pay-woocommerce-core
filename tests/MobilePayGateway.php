@@ -5,7 +5,7 @@ class MobilePayGateway extends Gateway
     /**
      * @var string
      */
-    public $merchant_token = MERCHANT_TOKEN_MOBILEPAY;
+    public $access_token = ACCESS_TOKEN_MOBILEPAY;
 
     /**
      * @var string

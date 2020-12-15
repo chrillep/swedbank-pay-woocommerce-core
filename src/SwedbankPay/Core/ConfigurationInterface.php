@@ -6,7 +6,7 @@ namespace SwedbankPay\Core;
  * Interface ConfigurationInterface
  * @package SwedbankPay\Core
  * @method bool getDebug()
- * @method string getMerchantToken()
+ * @method string getAccessToken()
  * @method string getPayeeId()
  * @method string getPayeeName()
  * @method bool getMode()
@@ -25,7 +25,7 @@ namespace SwedbankPay\Core;
  */
 interface ConfigurationInterface
 {
-    const MERCHANT_TOKEN = 'merchant_token';
+    const ACCESS_TOKEN = 'access_token';
     const PAYEE_ID = 'payee_id';
     const PAYEE_NAME = 'payee_name';
     const MODE = 'mode';

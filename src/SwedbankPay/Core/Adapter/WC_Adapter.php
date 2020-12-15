@@ -76,7 +76,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
     {
         return array(
             ConfigurationInterface::DEBUG => 'yes' === $this->gateway->debug,
-            ConfigurationInterface::MERCHANT_TOKEN => $this->gateway->merchant_token,
+            ConfigurationInterface::ACCESS_TOKEN => $this->gateway->access_token,
             ConfigurationInterface::PAYEE_ID => $this->gateway->payee_id,
             ConfigurationInterface::PAYEE_NAME => get_bloginfo('name'),
             ConfigurationInterface::MODE => 'yes' === $this->gateway->testmode,

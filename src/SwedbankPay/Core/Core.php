@@ -77,7 +77,7 @@ class Core implements CoreInterface,
     {
         $default = [
             ConfigurationInterface::DEBUG => true,
-            ConfigurationInterface::MERCHANT_TOKEN => '',
+            ConfigurationInterface::ACCESS_TOKEN => '',
             ConfigurationInterface::PAYEE_ID => '',
             ConfigurationInterface::PAYEE_NAME => '',
             ConfigurationInterface::MODE => true,
@@ -107,7 +107,7 @@ class Core implements CoreInterface,
     private function getClient()
     {
         $client = new Client();
-        $client->setMerchantToken($this->configuration->getMerchantToken())
+        $client->setAccessToken($this->configuration->getAccessToken())
             ->setPayeeId($this->configuration->getPayeeId())
             ->setMode($this->configuration->getMode() === true ? Client::MODE_TEST : Client::MODE_PRODUCTION);
 

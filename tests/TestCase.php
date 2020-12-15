@@ -21,9 +21,9 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
     protected function setUp(): void
     {
-        if (!defined('MERCHANT_TOKEN') ||
-            MERCHANT_TOKEN === '<merchant_token>') {
-            $this->fail('MERCHANT_TOKEN not configured in INI file or environment variable.');
+        if (!defined('ACCESS_TOKEN') ||
+            ACCESS_TOKEN === '<merchant_token>') {
+            $this->fail('ACCESS_TOKEN not configured in INI file or environment variable.');
         }
 
         if (!defined('PAYEE_ID') ||

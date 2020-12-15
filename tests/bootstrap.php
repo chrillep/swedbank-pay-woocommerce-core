@@ -21,12 +21,12 @@ require_once __DIR__ . '/TestCase.php';
 
 // phpcs:disable
 if (getenv('MERCHANT_TOKEN') && getenv('PAYEE_ID')) {
-    define('MERCHANT_TOKEN', getenv('MERCHANT_TOKEN'));
+    define('ACCESS_TOKEN', getenv('MERCHANT_TOKEN'));
     define('PAYEE_ID', getenv('PAYEE_ID'));
     define('VERSION', getenv('VERSION'));
 
     if (getenv('MERCHANT_TOKEN_MOBILEPAY') && getenv('PAYEE_ID_MOBILEPAY')) {
-        define('MERCHANT_TOKEN_MOBILEPAY', getenv('MERCHANT_TOKEN_MOBILEPAY'));
+        define('ACCESS_TOKEN_MOBILEPAY', getenv('ACCESS_TOKEN_MOBILEPAY'));
         define('PAYEE_ID_MOBILEPAY', getenv('PAYEE_ID_MOBILEPAY'));
     }
     // phpcs:enable

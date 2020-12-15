@@ -51,7 +51,7 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
     {
         return [
             ConfigurationInterface::DEBUG => $this->gateway->debug,
-            ConfigurationInterface::MERCHANT_TOKEN => $this->gateway->merchant_token,
+            ConfigurationInterface::ACCESS_TOKEN => $this->gateway->access_token,
             ConfigurationInterface::PAYEE_ID => $this->gateway->payee_id,
             ConfigurationInterface::PAYEE_NAME => $this->gateway->payee_name,
             ConfigurationInterface::MODE => $this->gateway->testmode,
