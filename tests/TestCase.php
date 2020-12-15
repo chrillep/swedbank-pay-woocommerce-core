@@ -22,7 +22,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
     protected function setUp(): void
     {
         if (!defined('ACCESS_TOKEN') ||
-            ACCESS_TOKEN === '<merchant_token>') {
+            ACCESS_TOKEN === '<access_token>') {
             $this->fail('ACCESS_TOKEN not configured in INI file or environment variable.');
         }
 

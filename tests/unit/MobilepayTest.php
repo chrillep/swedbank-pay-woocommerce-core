@@ -8,7 +8,7 @@ class MobilepayTest extends TestCase
     protected function setUp(): void
     {
         if (!defined('ACCESS_TOKEN_MOBILEPAY') ||
-            ACCESS_TOKEN_MOBILEPAY === '<merchant_token>') {
+            ACCESS_TOKEN_MOBILEPAY === '<access_token>') {
             $this->fail('ACCESS_TOKEN_MOBILEPAY not configured in INI file or environment variable.');
         }
 

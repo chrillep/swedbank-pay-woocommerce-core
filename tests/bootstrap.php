@@ -38,8 +38,8 @@ if (getenv('ACCESS_TOKEN') && getenv('PAYEE_ID')) {
         $config = parse_ini_file(__DIR__ . '/config.ini', true);
     }
 
-    define('MERCHANT_TOKEN', $config['merchant_token']);
+    define('ACCESS_TOKEN', $config['access_token']);
     define('PAYEE_ID', $config['payee_id']);
-    define('MERCHANT_TOKEN_MOBILEPAY', $config['merchant_token_mobilepay']);
+    define('ACCESS_TOKEN_MOBILEPAY', $config['access_token_mobilepay']);
     define('PAYEE_ID_MOBILEPAY', $config['payee_id_mobilepay']);
 }
