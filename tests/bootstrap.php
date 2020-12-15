@@ -21,7 +21,7 @@ require_once __DIR__ . '/TestCase.php';
 
 // phpcs:disable
 if (getenv('ACCESS_TOKEN') && getenv('PAYEE_ID')) {
-    define('ACCESS_TOKEN', getenv('MERCHANT_TOKEN'));
+    define('ACCESS_TOKEN', getenv('ACCESS_TOKEN'));
     define('PAYEE_ID', getenv('PAYEE_ID'));
     define('VERSION', getenv('VERSION'));
 
