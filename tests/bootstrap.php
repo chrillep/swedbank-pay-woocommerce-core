@@ -25,7 +25,7 @@ if (getenv('ACCESS_TOKEN') && getenv('PAYEE_ID')) {
     define('PAYEE_ID', getenv('PAYEE_ID'));
     define('VERSION', getenv('VERSION'));
 
-    if (getenv('MERCHANT_TOKEN_MOBILEPAY') && getenv('PAYEE_ID_MOBILEPAY')) {
+    if (getenv('ACCESS_TOKEN_MOBILEPAY') && getenv('PAYEE_ID_MOBILEPAY')) {
         define('ACCESS_TOKEN_MOBILEPAY', getenv('ACCESS_TOKEN_MOBILEPAY'));
         define('PAYEE_ID_MOBILEPAY', getenv('PAYEE_ID_MOBILEPAY'));
     }
