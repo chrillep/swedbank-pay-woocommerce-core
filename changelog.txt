@@ -1,3 +1,6 @@
+Version 3.0.0
+* Renamed `getMerchantToken()` to `getAccessToken()`
+
 Version 2.1.0
 * Add `checkout-draft` status
 * Don't change the order status if it was captured before

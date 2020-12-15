@@ -6,7 +6,7 @@ namespace SwedbankPay\Core;
  * Class Configuration
  * @package SwedbankPay\Core
  * @method bool getDebug()
- * @method string getMerchantToken()
+ * @method string getAccessToken()
  * @method string getPayeeId()
  * @method string getPayeeName()
  * @method bool getMode()
