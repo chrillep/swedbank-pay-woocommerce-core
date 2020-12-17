@@ -23,7 +23,7 @@ jobs:
           php-version: '7.3'
           extension: intl, mbstring, json, bcmath
           coverage: xdebug
-          tools: composer, php-cs-fixer, phpunit, phpcpd, phpmd
+          tools: composer, phpcs, php-cs-fixer, phpunit, phpcpd, phpmd
 
       - name: PHPCS check
         run: ./vendor/bin/phpcs --standard=PSR2 --report=code --ignore=vendor/* --runtime-set ignore_warnings_on_exit true src/
