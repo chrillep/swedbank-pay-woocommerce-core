@@ -16,6 +16,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Install dependencies
         uses: shivammathur/setup-php@master
         with:
@@ -23,6 +24,13 @@ jobs:
           extension: intl, mbstring, json, bcmath
           coverage: xdebug
           tools: composer, php-cs-fixer, phpunit, phpcpd, phpmd
+
+      - name: PHPCS check
+        run: ./vendor/bin/phpcs --standard=PSR2 --report=code --ignore=vendor/* --runtime-set ignore_warnings_on_exit true src/
+
+      - name: PHP Mess Detector
+        run: ./vendor/bin/phpmd src/ text cleancode,codesize,controversial,design,naming,unusedcode  --exclude vendor/
+
       - name: Unit tests
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
@@ -30,6 +38,12 @@ jobs:
           ACCESS_TOKEN_MOBILEPAY: ${{ secrets.ACCESS_TOKEN_MOBILEPAY }}
           PAYEE_ID_MOBILEPAY: ${{ secrets.PAYEE_ID_MOBILEPAY }}
         run: composer install && ./vendor/bin/phpunit --configuration=./phpunit.xml.dist --bootstrap=./tests/bootstrap.php ./tests/ --coverage-clover=coverage.xml
+
+      - name: Upload code coverage report to Codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: bash <(curl -s https://codecov.io/bash)
+
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:

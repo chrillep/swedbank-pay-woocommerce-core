@@ -3,6 +3,7 @@
 namespace SwedbankPay\Core;
 
 use InvalidArgumentException;
+use BadMethodCallException;
 
 class Data implements \ArrayAccess
 {
@@ -37,6 +38,7 @@ class Data implements \ArrayAccess
      * @param $key
      * @param mixed|null $value
      * @return $this
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function setData($key, $value = null)
     {
@@ -88,23 +90,23 @@ class Data implements \ArrayAccess
     public function __call($method, $args)
     {
         switch (substr($method, 0, 3)) {
-            case 'get' :
-                $key = $this->_underscore(substr($method, 3));
+            case 'get':
+                $key = $this->underscore(substr($method, 3));
                 return $this->getData($key);
-            case 'set' :
-                $key = $this->_underscore(substr($method, 3));
+            case 'set':
+                $key = $this->underscore(substr($method, 3));
                 $this->setData($key, isset($args[0]) ? $args[0] : null);
                 return $this;
-            case 'uns' :
-                $key = $this->_underscore(substr($method, 3));
+            case 'uns':
+                $key = $this->underscore(substr($method, 3));
                 $this->unsData($key);
                 return $this;
-            case 'has' :
-                $key = $this->_underscore(substr($method, 3));
+            case 'has':
+                $key = $this->underscore(substr($method, 3));
                 return $this->hasData($key);
         }
 
-        throw new \Exception(sprintf('Invalid method %s::%s', get_class($this), $method));
+        throw new BadMethodCallException(sprintf('Invalid method %s::%s', get_class($this), $method));
     }
 
     /**
@@ -162,7 +164,7 @@ class Data implements \ArrayAccess
      * @param string $name
      * @return string
      */
-    protected function _underscore($name)
+    protected function underscore($name)
     {
         return strtolower(preg_replace('/(.)([A-Z])/', '$1_$2', $name));
     }

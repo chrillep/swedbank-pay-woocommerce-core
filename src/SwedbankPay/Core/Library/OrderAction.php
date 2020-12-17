@@ -2,6 +2,7 @@
 
 namespace SwedbankPay\Core\Library;
 
+use InvalidArgumentException;
 use SwedbankPay\Core\Api\Response;
 use SwedbankPay\Core\Api\Transaction;
 use SwedbankPay\Core\Api\TransactionInterface;
@@ -20,6 +21,7 @@ trait OrderAction
      * @param float|int|null $amount
      *
      * @return bool
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function canCapture($orderId, $amount = null)
     {
@@ -34,7 +36,8 @@ trait OrderAction
             return false;
         }
 
-        return isset($result['payment']['remainingCaptureAmount']) && (float)$result['payment']['remainingCaptureAmount'] > 0.1;
+        return isset($result['payment']['remainingCaptureAmount'])
+            && (float)$result['payment']['remainingCaptureAmount'] > 0.1;
     }
 
     /**
@@ -44,6 +47,7 @@ trait OrderAction
      * @param float|int|null $amount
      *
      * @return bool
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function canCancel($orderId, $amount = null)
     {
@@ -58,7 +62,8 @@ trait OrderAction
             return false;
         }
 
-        return isset($result['payment']['remainingCancellationAmount']) && (float)$result['payment']['remainingCancellationAmount'] > 0.1;
+        return isset($result['payment']['remainingCancellationAmount'])
+            && (float)$result['payment']['remainingCancellationAmount'] > 0.1;
     }
 
     /**
@@ -90,7 +95,7 @@ trait OrderAction
         $result = $this->fetchTransactionsList($order->getPaymentId());
 
         $refunded = 0;
-        foreach ($result['transactions']['transactionList'] as $key => $transaction) {
+        foreach ($result['transactions']['transactionList'] as $transaction) {
             if ($transaction['type'] === 'Reversal') {
                 $refunded += ($transaction['amount'] / 100);
             }
@@ -113,6 +118,8 @@ trait OrderAction
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function capture($orderId, $amount = null, $vatAmount = 0)
     {
@@ -195,6 +202,8 @@ trait OrderAction
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function cancel($orderId, $amount = null, $vatAmount = 0)
     {
@@ -257,7 +266,8 @@ trait OrderAction
                 );
                 break;
             case 'Failed':
-                $message = isset($transaction['failedReason']) ? $transaction['failedReason'] : 'Cancellation is failed.';
+                $message = isset($transaction['failedReason']) ? $transaction['failedReason']
+                    : 'Cancellation is failed.';
                 throw new Exception($message);
             default:
                 throw new Exception('Capture is failed.');
@@ -275,6 +285,9 @@ trait OrderAction
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function refund($orderId, $amount = null, $vatAmount = 0)
     {
@@ -376,6 +389,7 @@ trait OrderAction
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function abort($orderId)
     {
@@ -422,7 +436,8 @@ trait OrderAction
      * @param string|null $transactionNumber
      * @return bool
      */
-    public function canUpdateOrderStatus($orderId, $status, $transactionNumber = null) {
+    public function canUpdateOrderStatus($orderId, $status, $transactionNumber = null)
+    {
         return $this->adapter->canUpdateOrderStatus($orderId, $status, $transactionNumber);
     }
 
@@ -528,7 +543,7 @@ trait OrderAction
         // Extract transaction from list
         if ($transactionNumber) {
             $transaction = $this->findTransaction('number', $transactionNumber);
-            if ( ! $transaction ) {
+            if (! $transaction) {
                 throw new Exception(sprintf('Failed to fetch transaction number #%s', $transactionNumber));
             }
 
@@ -539,8 +554,11 @@ trait OrderAction
         foreach ($transactions as $transaction) {
             try {
                 $this->processTransaction($orderId, $transaction);
-            } catch (Exception $e) {
-                $this->log(LogLevel::ERROR, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            } catch (Exception $exception) {
+                $this->log(
+                    LogLevel::ERROR,
+                    sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $exception->getMessage())
+                );
 
                 continue;
             }
@@ -554,6 +572,10 @@ trait OrderAction
      * @param Transaction|array $transaction
      *
      * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function processTransaction($orderId, $transaction)
     {
@@ -563,15 +585,17 @@ trait OrderAction
         if (is_array($transaction)) {
             $transaction = new Transaction($transaction);
         } elseif (!$transaction instanceof Transaction) {
-            throw new \InvalidArgumentException('Invalid a transaction parameter');
+            throw new InvalidArgumentException('Invalid a transaction parameter');
         }
 
         // Apply action
         switch ($transaction->getType()) {
             case TransactionInterface::TYPE_VERIFICATION:
                 if ($transaction->isFailed()) {
-                    $this->addOrderNote($orderId,
-                        sprintf('Verification has been failed. Reason: %s.',
+                    $this->addOrderNote(
+                        $orderId,
+                        sprintf(
+                            'Verification has been failed. Reason: %s.',
                             $transaction->getFailedDetails()
                         )
                     );
@@ -639,17 +663,17 @@ trait OrderAction
 
                 // Don't change the order status if it was captured before
                 if ($order->getStatus() === OrderInterface::STATUS_CAPTURED) {
-                	$this->addOrderNote(
-		                $orderId,
-		                sprintf('Payment has been authorized. Transaction: %s', $transaction->getNumber())
-	                );
+                    $this->addOrderNote(
+                        $orderId,
+                        sprintf('Payment has been authorized. Transaction: %s', $transaction->getNumber())
+                    );
                 } else {
-	                $this->updateOrderStatus(
-		                $orderId,
-		                OrderInterface::STATUS_AUTHORIZED,
-		                sprintf('Payment has been authorized. Transaction: %s', $transaction->getNumber()),
-		                $transaction->getNumber()
-	                );
+                    $this->updateOrderStatus(
+                        $orderId,
+                        OrderInterface::STATUS_AUTHORIZED,
+                        sprintf('Payment has been authorized. Transaction: %s', $transaction->getNumber()),
+                        $transaction->getNumber()
+                    );
                 }
 
                 // Save Payment Token
@@ -707,7 +731,7 @@ trait OrderAction
                 $this->updateOrderStatus(
                     $orderId,
                     OrderInterface::STATUS_CAPTURED,
-	                sprintf('Payment has been captured. Transaction: %s', $transaction->getNumber()),
+                    sprintf('Payment has been captured. Transaction: %s', $transaction->getNumber()),
                     $transaction->getNumber()
                 );
                 break;
@@ -737,7 +761,7 @@ trait OrderAction
                 $this->updateOrderStatus(
                     $orderId,
                     OrderInterface::STATUS_CAPTURED,
-	                sprintf('Payment has been cancelled. Transaction: %s', $transaction->getNumber()),
+                    sprintf('Payment has been cancelled. Transaction: %s', $transaction->getNumber()),
                     $transaction->getNumber()
                 );
                 break;
@@ -795,7 +819,6 @@ trait OrderAction
             default:
                 throw new Exception(sprintf('Error: Unknown type %s', $transaction->getType()));
         }
-
     }
 
     /**
@@ -819,8 +842,13 @@ trait OrderAction
     }
 
     /**
+     * Update Transactions On Failure.
+     *
      * @param mixed $orderId
      * @return void
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function updateTransactionsOnFailure($orderId)
     {
@@ -865,7 +893,8 @@ trait OrderAction
                                 // Log failed transaction
                                 $this->log(
                                     LogLevel::WARNING,
-                                    sprintf('Failed transaction: (%s), (%s), (%s), (%s)',
+                                    sprintf(
+                                        'Failed transaction: (%s), (%s), (%s), (%s)',
                                         $orderId,
                                         $paymentId,
                                         $transaction->getId(),

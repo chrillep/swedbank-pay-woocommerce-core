@@ -22,6 +22,7 @@ interface SwishInterface
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
      */
     public function initiateSwishPayment($orderId, $phone, $ecomOnlyEnabled = true);
 

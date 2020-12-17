@@ -92,5 +92,4 @@ trait Trustly
             throw new Exception($e->getMessage());
         }
     }
-
 }

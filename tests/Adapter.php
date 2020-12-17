@@ -288,13 +288,13 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
 	/**
 	 * Get Order Status.
 	 *
-	 * @param $order_id
+	 * @param $orderId
 	 *
-	 * @see wc_get_order_statuses()
 	 * @return string
 	 * @throws Exception
+	 *@see wc_get_order_statuses()
 	 */
-	public function getOrderStatus($order_id)
+	public function getOrderStatus($orderId)
 	{
 		return OrderInterface::STATUS_AUTHORIZED;
 	}

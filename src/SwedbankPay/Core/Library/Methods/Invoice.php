@@ -220,6 +220,8 @@ trait Invoice
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function captureInvoice($orderId, $amount = null, $vatAmount = 0, array $items = [])
     {
@@ -314,6 +316,8 @@ trait Invoice
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function cancelInvoice($orderId, $amount = null, $vatAmount = 0)
     {
@@ -371,7 +375,9 @@ trait Invoice
                 );
                 break;
             case 'Failed':
-                $message = isset($transaction['failedReason']) ? $transaction['failedReason'] : 'Cancellation is failed.';
+                $message = isset($transaction['failedReason']) ?
+                    $transaction['failedReason'] : 'Cancellation is failed.';
+
                 throw new Exception($message);
             default:
                 throw new Exception('Capture is failed.');
@@ -389,6 +395,9 @@ trait Invoice
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function refundInvoice($orderId, $amount = null, $vatAmount = 0)
     {

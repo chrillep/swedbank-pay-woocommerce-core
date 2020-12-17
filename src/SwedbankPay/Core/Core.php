@@ -22,14 +22,20 @@ use SwedbankPay\Core\Library\Methods\Vipps;
 use SwedbankPay\Core\Library\Methods\Checkout;
 use SwedbankPay\Core\Library\Methods\Consumer;
 
-class Core implements CoreInterface,
-	CardInterface,
-	CheckoutInterface,
-	InvoiceInterface,
-	MobilepayInterface,
-	SwishInterface,
-	TrustlyInterface,
-	VippsInterface
+/**
+ * Class Core
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @package SwedbankPay\Core
+ */
+class Core implements
+    CoreInterface,
+    CardInterface,
+    CheckoutInterface,
+    InvoiceInterface,
+    MobilepayInterface,
+    SwishInterface,
+    TrustlyInterface,
+    VippsInterface
 {
     use PaymentInfo;
     use Card;
@@ -118,6 +124,7 @@ class Core implements CoreInterface,
      * @param mixed $orderId
      *
      * @return Order
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
     private function getOrder($orderId)
     {
@@ -130,6 +137,7 @@ class Core implements CoreInterface,
      * @param mixed $orderId
      *
      * @return Order\PlatformUrls
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
     private function getPlatformUrls($orderId)
     {
@@ -142,6 +150,7 @@ class Core implements CoreInterface,
      * @param mixed $orderId
      *
      * @return Order\RiskIndicator
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
     private function getRiskIndicator($orderId)
     {
@@ -154,6 +163,7 @@ class Core implements CoreInterface,
      * @param mixed $orderId
      *
      * @return Order\PayeeInfo
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
     private function getPayeeInfo($orderId)
     {
@@ -193,4 +203,3 @@ class Core implements CoreInterface,
         $this->adapter->log($level, $message, $context);
     }
 }
-

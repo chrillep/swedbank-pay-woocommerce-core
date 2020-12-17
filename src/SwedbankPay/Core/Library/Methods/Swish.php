@@ -18,6 +18,7 @@ trait Swish
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
      */
     public function initiateSwishPayment($orderId, $phone, $ecomOnlyEnabled = true)
     {
@@ -110,5 +111,4 @@ trait Swish
 
         return $result;
     }
-
 }

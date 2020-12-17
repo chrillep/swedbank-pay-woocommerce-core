@@ -19,9 +19,14 @@ trait Checkout
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
+     * @SuppressWarnings(PHPMD.LongVariable)
      */
-    public function initiatePaymentOrderPurchase($orderId, $consumerProfileRef = null, $generateRecurrenceToken = false)
-    {
+    public function initiatePaymentOrderPurchase(
+        $orderId,
+        $consumerProfileRef = null,
+        $generateRecurrenceToken = false
+    ) {
         /** @var Order $order */
         $order = $this->getOrder($orderId);
 
@@ -81,11 +86,17 @@ trait Checkout
         try {
             $result = $this->request('POST', '/psp/paymentorders', $params);
         } catch (\SwedbankPay\Core\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage(), $e->getCode(), null, $e->getProblems());
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }
@@ -172,7 +183,8 @@ trait Checkout
             'paymentorder' => [
                 'operation' => self::OPERATION_RECUR,
                 'recurrenceToken' => $recurrenceToken,
-                'intent' => $this->configuration->getAutoCapture() ? self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
+                'intent' => $this->configuration->getAutoCapture() ?
+                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
                 'currency' => $order->getCurrency(),
                 'amount' => $order->getAmountInCents(),
                 'vatAmount' => $order->getVatAmountInCents(),
@@ -195,7 +207,10 @@ trait Checkout
         try {
             $result = $this->request('POST', '/psp/paymentorders', $params);
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw $e;
         }
@@ -228,11 +243,17 @@ trait Checkout
         try {
             $result = $this->request('PATCH', $updateUrl, $params);
         } catch (\SwedbankPay\Core\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage(), $e->getCode(), null, $e->getProblems());
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }
@@ -311,13 +332,13 @@ trait Checkout
             'transaction' => [
                 'amount'         => (int)bcmul(100, $amount),
                 'vatAmount'      => (int)bcmul(100, $vatAmount),
-                'description'    => sprintf( 'Capture for Order #%s', $order->getOrderId() ),
+                'description'    => sprintf('Capture for Order #%s', $order->getOrderId()),
                 'payeeReference' => $this->generatePayeeReference($orderId),
                 'orderItems' => $items
             ]
         ];
 
-        $result = $this->request( 'POST', $href, $params );
+        $result = $this->request('POST', $href, $params);
 
         // Save transaction
         $transaction = $result['capture']['transaction'];
@@ -358,6 +379,8 @@ trait Checkout
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function cancelCheckout($orderId, $amount = null, $vatAmount = 0)
     {
@@ -386,12 +409,12 @@ trait Checkout
 
         $params = [
             'transaction' => [
-                'description'    => sprintf( 'Cancellation for Order #%s', $order->getOrderId() ),
+                'description'    => sprintf('Cancellation for Order #%s', $order->getOrderId()),
                 'payeeReference' => $this->generatePayeeReference($orderId),
             ]
         ];
 
-        $result = $this->request( 'POST', $href, $params );
+        $result = $this->request('POST', $href, $params);
 
         // Save transaction
         $transaction = $result['cancellation']['transaction'];
@@ -415,7 +438,8 @@ trait Checkout
                 );
                 break;
             case 'Failed':
-                $message = isset($transaction['failedReason']) ? $transaction['failedReason'] : 'Cancellation is failed.';
+                $message = isset($transaction['failedReason']) ?
+                    $transaction['failedReason'] : 'Cancellation is failed.';
                 throw new Exception($message);
             default:
                 throw new Exception('Capture is failed.');
@@ -434,6 +458,9 @@ trait Checkout
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function refundCheckout($orderId, $amount = null, $vatAmount = 0, array $items = [])
     {
@@ -459,14 +486,14 @@ trait Checkout
 
         // @todo Partial Refund
 
-	    // Use all order items if undefined
-	    if (count($items) === 0) {
-		    $items = $order->getItems();
-	    }
+        // Use all order items if undefined
+        if (count($items) === 0) {
+            $items = $order->getItems();
+        }
 
         $params = [
             'transaction' => [
-                'description' => sprintf( 'Refund for Order #%s', $order->getOrderId() ),
+                'description' => sprintf('Refund for Order #%s', $order->getOrderId()),
                 'amount' => (int)bcmul(100, $amount),
                 'vatAmount' => (int)bcmul(100, $vatAmount),
                 'payeeReference' => $this->generatePayeeReference($orderId),
@@ -485,16 +512,16 @@ trait Checkout
             case 'Completed':
                 $info = $this->fetchPaymentInfo($paymentOrderId);
 
-	            // Check if the payment was refund fully
-	            $isFullRefund = false;
-	            if (!isset($info['paymentOrder']['remainingReversalAmount'])) {
-		            // Failback if `remainingReversalAmount` is missing
-		            if (bccomp($order->getAmount(), $amount, 2) === 0) {
-			            $isFullRefund = true;
-		            }
-	            } elseif ((int) $info['paymentOrder']['remainingReversalAmount'] === 0) {
-		            $isFullRefund = true;
-	            }
+                // Check if the payment was refund fully
+                $isFullRefund = false;
+                if (!isset($info['paymentOrder']['remainingReversalAmount'])) {
+                    // Failback if `remainingReversalAmount` is missing
+                    if (bccomp($order->getAmount(), $amount, 2) === 0) {
+                        $isFullRefund = true;
+                    }
+                } elseif ((int) $info['paymentOrder']['remainingReversalAmount'] === 0) {
+                    $isFullRefund = true;
+                }
 
                 if ($isFullRefund) {
                     $this->updateOrderStatus(
