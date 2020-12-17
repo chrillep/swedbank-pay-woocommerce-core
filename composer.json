@@ -20,7 +20,7 @@
     "ecommerce"
   ],
   "homepage": "https://github.com/SwedbankPay/swedbank-pay-woocommerce-core",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "require": {
     "php": ">=7.0",
     "ext-json": "*",
