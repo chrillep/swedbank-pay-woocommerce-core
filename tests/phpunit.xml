@@ -1,5 +1,5 @@
 <phpunit 
-        bootstrap="tests/bootstrap.php"
+        bootstrap="./bootstrap.php"
         backupGlobals="false"
         colors="true"
         convertErrorsToExceptions="true"
@@ -12,7 +12,7 @@
     </php>
     <testsuites>
         <testsuite name="Tests">
-            <directory suffix=".php">./tests/unit</directory>
+            <directory suffix=".php">.</directory>
         </testsuite>
     </testsuites>
     <filter>
