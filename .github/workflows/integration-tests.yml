@@ -26,10 +26,10 @@ jobs:
           tools: composer, phpcs, php-cs-fixer, phpunit, phpcpd, phpmd
 
       - name: PHPCS check
-        run: ./vendor/bin/phpcs --standard=PSR2 --report=code --ignore=vendor/* --runtime-set ignore_warnings_on_exit true src/
+        run: phpcs --standard=PSR2 --report=code --ignore=vendor/* --runtime-set ignore_warnings_on_exit true src/
 
       - name: PHP Mess Detector
-        run: ./vendor/bin/phpmd src/ text cleancode,codesize,controversial,design,naming,unusedcode  --exclude vendor/
+        run: phpmd src/ text cleancode,codesize,controversial,design,naming,unusedcode  --exclude vendor/
 
       - name: Unit tests
         env:
