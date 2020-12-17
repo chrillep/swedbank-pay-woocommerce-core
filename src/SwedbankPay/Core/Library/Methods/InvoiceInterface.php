@@ -13,6 +13,8 @@ interface InvoiceInterface
 {
     const INVOICE_PAYMENTS_URL = '/psp/invoice/payments';
 
+    const PRICE_TYPE_INVOICE = 'Invoice';
+
     /**
      * @param mixed $orderId
      *

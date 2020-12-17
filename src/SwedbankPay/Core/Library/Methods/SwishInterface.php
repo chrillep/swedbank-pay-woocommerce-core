@@ -13,6 +13,8 @@ interface SwishInterface
 {
     const SWISH_PAYMENTS_URL = '/psp/swish/payments';
 
+    const PRICE_TYPE_SWISH = 'Swish';
+
     /**
      * Initiate Swish Payment
      *

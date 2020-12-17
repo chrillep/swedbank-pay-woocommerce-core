@@ -9,6 +9,17 @@ use SwedbankPay\Core\Order;
 use SwedbankPay\Core\OrderInterface;
 use SwedbankPay\Core\OrderItemInterface;
 
+use SwedbankPay\Api\Service\Payment\Resource\Collection\PricesCollection;
+use SwedbankPay\Api\Service\Payment\Resource\Collection\Item\PriceItem;
+use SwedbankPay\Api\Service\Payment\Resource\Request\Metadata;
+use SwedbankPay\Api\Service\Invoice\Request\CreateInvoice;
+use SwedbankPay\Api\Service\Invoice\Resource\Request\PaymentPayeeInfo;
+use SwedbankPay\Api\Service\Invoice\Resource\Request\PaymentUrl;
+use SwedbankPay\Api\Service\Invoice\Resource\Request\Payment;
+use SwedbankPay\Api\Service\Invoice\Resource\Request\Invoice as InvoiceRequest;
+use SwedbankPay\Api\Service\Invoice\Resource\Request\InvoicePaymentObject as PaymentObject;
+use SwedbankPay\Api\Service\Data\ResponseInterface as ResponseServiceInterface;
+
 trait Invoice
 {
     /**
@@ -24,41 +35,54 @@ trait Invoice
 
         $urls = $this->getPlatformUrls($orderId);
 
-        $params = [
-            'payment' => [
-                'operation' => self::OPERATION_FINANCING_CONSUMER,
-                'intent' => self::INTENT_AUTHORIZATION,
-                'currency' => $order->getCurrency(),
-                'prices' => [
-                    [
-                        'type' => 'Invoice',
-                        'amount' => $order->getAmountInCents(),
-                        'vatAmount' => $order->getVatAmountInCents()
-                    ]
-                ],
-                'description' => $order->getDescription(),
-                'payerReference' => $order->getPayerReference(),
-                'userAgent' => $order->getHttpUserAgent(),
-                'language' => $order->getLanguage(),
-                'urls' => [
-                    'completeUrl' => $urls->getCompleteUrl(),
-                    'cancelUrl' => $urls->getCancelUrl(),
-                    'callbackUrl' => $urls->getCallbackUrl(),
-                    'termsOfServiceUrl' => $this->configuration->getTermsUrl()
-                ],
-                'payeeInfo' => $this->getPayeeInfo($orderId)->toArray(),
-                'riskIndicator' => $this->getRiskIndicator($orderId)->toArray(),
-                'metadata' => [
-                    'order_id' => $order->getOrderId()
-                ],
-            ],
-            'invoice' => [
-                'invoiceType' => 'PayExFinancing' . ucfirst(strtolower($order->getBillingCountryCode()))
-            ]
-        ];
+        $url = new PaymentUrl();
+        $url->setCompleteUrl($urls->getCompleteUrl())
+            ->setCancelUrl($urls->getCancelUrl())
+            ->setCallbackUrl($urls->getCallbackUrl())
+            ->setLogoUrl($urls->getLogoUrl())
+            ->setTermsOfService($urls->getTermsUrl())
+            ->setHostUrls($urls->getHostUrls());
+
+        $payeeInfo = new PaymentPayeeInfo($this->getPayeeInfo($orderId)->toArray());
+
+        $price = new PriceItem();
+        $price->setType(InvoiceInterface::PRICE_TYPE_INVOICE)
+            ->setAmount($order->getAmountInCents())
+            ->setVatAmount($order->getVatAmountInCents());
+
+        $prices = new PricesCollection();
+        $prices->addItem($price);
+
+        $metadata = new Metadata();
+        $metadata->setData('order_id', $order->getOrderId());
+
+        $payment = new Payment();
+        $payment->setOperation(self::OPERATION_FINANCING_CONSUMER)
+            ->setIntent(self::INTENT_AUTHORIZATION)
+            ->setCurrency($order->getCurrency())
+            ->setDescription($order->getDescription())
+            ->setUserAgent($order->getHttpUserAgent())
+            ->setLanguage($order->getLanguage())
+            ->setUrls($url)
+            ->setPayeeInfo($payeeInfo)
+            ->setPrices($prices)
+            ->setMetadata($metadata);
+
+        $invoice = new InvoiceRequest();
+        $invoice->setInvoiceType('PayExFinancing' . ucfirst(strtolower($order->getBillingCountryCode())));
+
+        $paymentObject = new PaymentObject();
+        $paymentObject->setPayment($payment)
+            ->setInvoice($invoice);
+
+        $purchaseRequest = new CreateInvoice($paymentObject);
+        $purchaseRequest->setClient($this->client);
 
         try {
-            $result = $this->request('POST', self::INVOICE_PAYMENTS_URL, $params);
+            /** @var ResponseServiceInterface $responseService */
+            $responseService = $purchaseRequest->send();
+
+            return new Response($responseService->getResponseData());
         } catch (\Exception $e) {
             $this->log(
                 LogLevel::DEBUG,
@@ -67,8 +91,6 @@ trait Invoice
 
             throw new Exception($e->getMessage());
         }
-
-        return $result;
     }
 
     /**

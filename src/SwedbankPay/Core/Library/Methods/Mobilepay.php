@@ -9,6 +9,7 @@ use SwedbankPay\Core\Order;
 
 use SwedbankPay\Api\Service\Payment\Resource\Collection\PricesCollection;
 use SwedbankPay\Api\Service\Payment\Resource\Collection\Item\PriceItem;
+use SwedbankPay\Api\Service\Payment\Resource\Request\Metadata;
 use SwedbankPay\Api\Service\MobilePay\Request\Purchase;
 use SwedbankPay\Api\Service\MobilePay\Resource\Request\PaymentPayeeInfo;
 use SwedbankPay\Api\Service\MobilePay\Resource\Request\PaymentPrefillInfo;
@@ -61,6 +62,9 @@ trait Mobilepay
         $prices = new PricesCollection();
         $prices->addItem($price);
 
+        $metadata = new Metadata();
+        $metadata->setData('order_id', $order->getOrderId());
+
         $payment = new Payment();
         $payment->setOperation(self::OPERATION_PURCHASE)
             ->setIntent(self::INTENT_AUTHORIZATION)
@@ -72,6 +76,7 @@ trait Mobilepay
             ->setPayeeInfo($payeeInfo)
             ->setPrefillInfo($prefillInfo)
             ->setPrices($prices)
+            ->setMetadata($metadata)
             ->setPayerReference($order->getPayerReference());
 
         $paymentObject = new PaymentObject();
