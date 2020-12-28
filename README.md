@@ -3,22 +3,23 @@
 ![Build status][build-badge]
 [![Latest Stable Version][version-badge]][packagist]
 [![Total Downloads][downloads-badge]][packagist]
+[![Codecov][codecov-badge]][codecov]
 [![License][license-badge]][packagist]
 
 ## About
 
 The Swedbank Pay Core for WooCommerce provides methods and classes 
-which simplify integration [Swedbank Pay's API Platform][api] with WooCommerce.
+which simplify integration [Swedbank Pay's API Platform][dev-portal] with WooCommerce.
 
 This Core includes the following payments options:
 
-* Checkout
-* Credit and debit cards (Visa, Mastercard, Visa Electron, Maestro etc).
-* Invoice
-* Swish
-* Vipps
-* MobilePay
-* Trustly
+*   Checkout
+*   Credit and debit cards (Visa, Mastercard, Visa Electron, Maestro etc).
+*   Invoice
+*   Swish
+*   Vipps
+*   MobilePay
+*   Trustly
 
 ## Installation
 

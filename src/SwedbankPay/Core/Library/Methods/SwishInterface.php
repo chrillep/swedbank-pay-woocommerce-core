@@ -13,6 +13,8 @@ interface SwishInterface
 {
     const SWISH_PAYMENTS_URL = '/psp/swish/payments';
 
+    const PRICE_TYPE_SWISH = 'Swish';
+
     /**
      * Initiate Swish Payment
      *
@@ -22,6 +24,7 @@ interface SwishInterface
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
      */
     public function initiateSwishPayment($orderId, $phone, $ecomOnlyEnabled = true);
 

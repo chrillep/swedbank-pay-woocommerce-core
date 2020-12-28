@@ -7,6 +7,18 @@ use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
 use SwedbankPay\Core\Order;
 
+use SwedbankPay\Api\Service\Payment\Resource\Collection\PricesCollection;
+use SwedbankPay\Api\Service\Payment\Resource\Collection\Item\PriceItem;
+use SwedbankPay\Api\Service\Payment\Resource\Request\Metadata;
+use SwedbankPay\Api\Service\Swish\Request\Purchase;
+use SwedbankPay\Api\Service\Swish\Resource\Request\PaymentPayeeInfo;
+use SwedbankPay\Api\Service\Swish\Resource\Request\PaymentPrefillInfo;
+use SwedbankPay\Api\Service\Swish\Resource\Request\PaymentUrl;
+use SwedbankPay\Api\Service\Swish\Resource\Request\Payment;
+use SwedbankPay\Api\Service\Swish\Resource\Request\SwishPaymentObject as PaymentObject;
+use SwedbankPay\Api\Service\Swish\Resource\Request\PaymentSwish;
+use SwedbankPay\Api\Service\Data\ResponseInterface as ResponseServiceInterface;
+
 trait Swish
 {
     /**
@@ -18,6 +30,7 @@ trait Swish
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
      */
     public function initiateSwishPayment($orderId, $phone, $ecomOnlyEnabled = true)
     {
@@ -26,48 +39,59 @@ trait Swish
 
         $urls = $this->getPlatformUrls($orderId);
 
-        // Process payment
-        $params = [
-            'payment' => [
-                'operation' => self::OPERATION_PURCHASE,
-                'intent' => self::INTENT_SALE,
-                'currency' => $order->getCurrency(),
-                'prices' => [
-                    [
-                        'type' => 'Swish',
-                        'amount' => $order->getAmountInCents(),
-                        'vatAmount' => $order->getVatAmountInCents()
-                    ]
-                ],
-                'description' => $order->getDescription(),
-                'payerReference' => $order->getPayerReference(),
-                'userAgent' => $order->getHttpUserAgent(),
-                'language' => $order->getLanguage(),
-                'urls' => [
-                    'hostUrls' => $urls->getHostUrls(),
-                    'completeUrl' => $urls->getCompleteUrl(),
-                    'cancelUrl' => $urls->getCancelUrl(),
-                    'callbackUrl' => $urls->getCallbackUrl(),
-                    'termsOfServiceUrl' => $this->configuration->getTermsUrl(),
-                    // 50px height and 400px width. Require https.
-                    'logoUrl'     => $this->configuration->getLogoUrl(),
-                ],
-                'payeeInfo' => $this->getPayeeInfo($orderId)->toArray(),
-                'riskIndicator' => $this->getRiskIndicator($orderId)->toArray(),
-                'prefillInfo' => [
-                    'msisdn' => $phone
-                ],
-                'swish' => [
-                    'ecomOnlyEnabled' => $ecomOnlyEnabled
-                ],
-                'metadata' => [
-                    'order_id' => $order->getOrderId()
-                ],
-            ]
-        ];
+        $url = new PaymentUrl();
+        $url->setCompleteUrl($urls->getCompleteUrl())
+            ->setCancelUrl($urls->getCancelUrl())
+            ->setCallbackUrl($urls->getCallbackUrl())
+            ->setLogoUrl($urls->getLogoUrl())
+            ->setTermsOfService($urls->getTermsUrl())
+            ->setHostUrls($urls->getHostUrls());
+
+        $payeeInfo = new PaymentPayeeInfo($this->getPayeeInfo($orderId)->toArray());
+
+        $prefillInfo = new PaymentPrefillInfo([
+            'msisdn' => $phone,
+        ]);
+
+        $price = new PriceItem();
+        $price->setType(SwishInterface::PRICE_TYPE_SWISH)
+            ->setAmount($order->getAmountInCents())
+            ->setVatAmount($order->getVatAmountInCents());
+
+        $prices = new PricesCollection();
+        $prices->addItem($price);
+
+        $metadata = new Metadata();
+        $metadata->setData('order_id', $order->getOrderId());
+
+        $swish = new PaymentSwish();
+        $swish->setEcomOnlyEnabled($ecomOnlyEnabled);
+
+        $payment = new Payment();
+        $payment->setOperation(self::OPERATION_PURCHASE)
+            ->setIntent(self::INTENT_SALE)
+            ->setCurrency($order->getCurrency())
+            ->setDescription($order->getDescription())
+            ->setUserAgent($order->getHttpUserAgent())
+            ->setLanguage($order->getLanguage())
+            ->setUrls($url)
+            ->setPayeeInfo($payeeInfo)
+            ->setPrefillInfo($prefillInfo)
+            ->setPrices($prices)
+            ->setMetadata($metadata)
+            ->setSwish($swish);
+
+        $paymentObject = new PaymentObject();
+        $paymentObject->setPayment($payment);
+
+        $purchaseRequest = new Purchase($paymentObject);
+        $purchaseRequest->setClient($this->client);
 
         try {
-            $result = $this->request('POST', self::SWISH_PAYMENTS_URL, $params);
+            /** @var ResponseServiceInterface $responseService */
+            $responseService = $purchaseRequest->send();
+
+            return new Response($responseService->getResponseData());
         } catch (\Exception $e) {
             $this->log(
                 LogLevel::DEBUG,
@@ -76,8 +100,6 @@ trait Swish
 
             throw new Exception($e->getMessage());
         }
-
-        return $result;
     }
 
     /**
@@ -110,5 +132,4 @@ trait Swish
 
         return $result;
     }
-
 }

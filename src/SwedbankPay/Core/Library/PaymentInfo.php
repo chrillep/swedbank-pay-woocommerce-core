@@ -19,7 +19,8 @@ trait PaymentInfo
      * @param array $params
      *
      * @return Response
-     * @throws \Exception
+     * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function request($method, $url, $params = [])
     {
@@ -33,41 +34,48 @@ trait PaymentInfo
         }
 
         if (empty($url)) {
-            throw new \Exception('Invalid url');
+            throw new Exception('Invalid url');
         }
 
         // Process params
-        array_walk_recursive($params, function (&$input, $key) {
+        array_walk_recursive($params, function (&$input) {
             if (is_object($input) && method_exists($input, 'toArray')) {
                 $input = $input->toArray();
             }
         });
 
         $start = microtime(true);
-        $this->log(LogLevel::DEBUG,
-            sprintf('Request: %s %s %s', $method, $url, json_encode($params, JSON_PRETTY_PRINT)));
+        $this->log(
+            LogLevel::DEBUG,
+            sprintf('Request: %s %s %s', $method, $url, json_encode($params, JSON_PRETTY_PRINT))
+        );
 
         try {
             /** @var \SwedbankPay\Api\Response $response */
             $client = $this->client->request($method, $url, $params);
 
-	        //$codeClass = (int)($this->client->getResponseCode() / 100);
-            $response_body = $client->getResponseBody();
-            $result = json_decode($response_body, true);
+            //$codeClass = (int)($this->client->getResponseCode() / 100);
+            $responseBody = $client->getResponseBody();
+            $result = json_decode($responseBody, true);
             $time = microtime(true) - $start;
-            $this->log(LogLevel::DEBUG, sprintf('[%.4F] Response: %s', $time, $response_body),
-                [$method, $url, $params]);
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('[%.4F] Response: %s', $time, $responseBody),
+                [$method, $url, $params]
+            );
 
             return new Response($result);
         } catch (\SwedbankPay\Api\Client\Exception $e) {
-        	$httpCode = (int) $this->client->getResponseCode();
+            $httpCode = (int) $this->client->getResponseCode();
 
             $time = microtime(true) - $start;
-            $this->log(LogLevel::DEBUG,
-                sprintf('[%.4F] Client Exception. Check debug info: %s', $time, $this->client->getDebugInfo()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('[%.4F] Client Exception. Check debug info: %s', $time, $this->client->getDebugInfo())
+            );
 
             // https://tools.ietf.org/html/rfc7807
-            $data = @json_decode($this->client->getResponseBody(), true);
+            $data = json_decode($this->client->getResponseBody(), true);
             if (json_last_error() === JSON_ERROR_NONE &&
                 isset($data['title']) &&
                 isset($data['detail'])

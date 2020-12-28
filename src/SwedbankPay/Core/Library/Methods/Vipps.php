@@ -2,9 +2,21 @@
 
 namespace SwedbankPay\Core\Library\Methods;
 
+use SwedbankPay\Core\Api\Response;
 use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
 use SwedbankPay\Core\Order;
+
+use SwedbankPay\Api\Service\Payment\Resource\Collection\PricesCollection;
+use SwedbankPay\Api\Service\Payment\Resource\Collection\Item\PriceItem;
+use SwedbankPay\Api\Service\Payment\Resource\Request\Metadata;
+use SwedbankPay\Api\Service\Vipps\Request\Purchase;
+use SwedbankPay\Api\Service\Vipps\Resource\Request\PaymentPayeeInfo;
+use SwedbankPay\Api\Service\Vipps\Resource\Request\PaymentPrefillInfo;
+use SwedbankPay\Api\Service\Vipps\Resource\Request\PaymentUrl;
+use SwedbankPay\Api\Service\Vipps\Resource\Request\Payment;
+use SwedbankPay\Api\Service\Vipps\Resource\Request\VippsPaymentObject as PaymentObject;
+use SwedbankPay\Api\Service\Data\ResponseInterface as ResponseServiceInterface;
 
 trait Vipps
 {
@@ -24,42 +36,55 @@ trait Vipps
 
         $urls = $this->getPlatformUrls($orderId);
 
-        // Process payment
-        $params = [
-            'payment' => [
-                'operation' => self::OPERATION_PURCHASE,
-                'intent' => self::INTENT_AUTHORIZATION,
-                'currency' => $order->getCurrency(),
-                'prices' => [
-                    [
-                        'type' => self::PRICE_TYPE_VIPPS,
-                        'amount' => $order->getAmountInCents(),
-                        'vatAmount' => $order->getVatAmountInCents()
-                    ]
-                ],
-                'description' => $order->getDescription(),
-                'payerReference' => $order->getPayerReference(),
-                'userAgent' => $order->getHttpUserAgent(),
-                'language' => $order->getLanguage(),
-                'urls' => [
-                    'completeUrl' => $urls->getCompleteUrl(),
-                    'cancelUrl' => $urls->getCancelUrl(),
-                    'callbackUrl' => $urls->getCallbackUrl(),
-                    'termsOfServiceUrl' => $this->configuration->getTermsUrl(),
-                ],
-                'payeeInfo' => $this->getPayeeInfo($orderId)->toArray(),
-                'riskIndicator' => $this->getRiskIndicator($orderId)->toArray(),
-                'prefillInfo' => [
-                    'msisdn' => $phone
-                ],
-                'metadata' => [
-                    'order_id' => $order->getOrderId()
-                ],
-            ]
-        ];
+        $url = new PaymentUrl();
+        $url->setCompleteUrl($urls->getCompleteUrl())
+            ->setCancelUrl($urls->getCancelUrl())
+            ->setCallbackUrl($urls->getCallbackUrl())
+            ->setLogoUrl($urls->getLogoUrl())
+            ->setTermsOfService($urls->getTermsUrl())
+            ->setHostUrls($urls->getHostUrls());
+
+        $payeeInfo = new PaymentPayeeInfo($this->getPayeeInfo($orderId)->toArray());
+
+        $prefillInfo = new PaymentPrefillInfo([
+            'msisdn' => $phone,
+        ]);
+
+        $price = new PriceItem();
+        $price->setType(VippsInterface::PRICE_TYPE_VIPPS)
+            ->setAmount($order->getAmountInCents())
+            ->setVatAmount($order->getVatAmountInCents());
+
+        $prices = new PricesCollection();
+        $prices->addItem($price);
+
+        $metadata = new Metadata();
+        $metadata->setData('order_id', $order->getOrderId());
+
+        $payment = new Payment();
+        $payment->setOperation(self::OPERATION_PURCHASE)
+            ->setIntent(self::INTENT_AUTHORIZATION)
+            ->setCurrency($order->getCurrency())
+            ->setDescription($order->getDescription())
+            ->setUserAgent($order->getHttpUserAgent())
+            ->setLanguage($order->getLanguage())
+            ->setUrls($url)
+            ->setPayeeInfo($payeeInfo)
+            ->setPrefillInfo($prefillInfo)
+            ->setPrices($prices)
+            ->setMetadata($metadata);
+
+        $paymentObject = new PaymentObject();
+        $paymentObject->setPayment($payment);
+
+        $purchaseRequest = new Purchase($paymentObject);
+        $purchaseRequest->setClient($this->client);
 
         try {
-            $result = $this->request('POST', self::VIPPS_PAYMENTS_URL, $params);
+            /** @var ResponseServiceInterface $responseService */
+            $responseService = $purchaseRequest->send();
+
+            return new Response($responseService->getResponseData());
         } catch (\Exception $e) {
             $this->log(
                 LogLevel::DEBUG,
@@ -68,7 +93,5 @@ trait Vipps
 
             throw new Exception($e->getMessage());
         }
-
-        return $result;
     }
 }

@@ -29,7 +29,7 @@ class Response extends Data
     public function getOperationByRel($rel, $single = true)
     {
         $operations = $this->hasData('operations') ? $this->getData('operations') : [];
-        $operation = array_filter($operations, function ($value, $key) use ($rel) {
+        $operation = array_filter($operations, function ($value) use ($rel) {
             return (is_array($value) && $value['rel'] === $rel);
         }, ARRAY_FILTER_USE_BOTH);
 

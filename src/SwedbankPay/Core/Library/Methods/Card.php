@@ -18,6 +18,7 @@ trait Card
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function initiateCreditCardPayment($orderId, $generateToken, $paymentToken)
     {
@@ -30,7 +31,8 @@ trait Card
         $params = [
             'payment' => [
                 'operation' => self::OPERATION_PURCHASE,
-                'intent' => $this->configuration->getAutoCapture() ? self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
+                'intent' => $this->configuration->getAutoCapture() ?
+                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
                 'currency' => $order->getCurrency(),
                 'prices' => [
                     [
@@ -87,7 +89,8 @@ trait Card
                     'lastName'      => $order->getBillingLastName(),
                     'email'         => $order->getBillingEmail(),
                     'msisdn'        => $order->getBillingPhone(),
-                    'streetAddress' => implode(', ',
+                    'streetAddress' => implode(
+                        ', ',
                         [$order->getBillingAddress1(), $order->getBillingAddress2()]
                     ),
                     'coAddress'     => '',
@@ -98,13 +101,15 @@ trait Card
 
                 // Add shipping address if needs
                 if ($order->needsShipping()) {
-                    $info['shippingAddress'] = [
+                    $params['payment']['cardholder']['shippingAddress'] = [
                         'firstName'     => $order->getShippingFirstName(),
                         'lastName'      => $order->getShippingLastName(),
                         'email'         => $order->getShippingEmail(),
                         'msisdn'        => $order->getShippingPhone(),
-                        'streetAddress' => implode(', ',
-                            [$order->getShippingAddress1(), $order->getShippingAddress2()]),
+                        'streetAddress' => implode(
+                            ', ',
+                            [$order->getShippingAddress1(), $order->getShippingAddress2()]
+                        ),
                         'coAddress'     => '',
                         'city'          => $order->getShippingCity(),
                         'zipCode'       => $order->getShippingPostcode(),
@@ -208,6 +213,7 @@ trait Card
      *
      * @return Response
      * @throws \Exception
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function initiateCreditCardRecur($orderId, $recurrenceToken, $paymentToken = null)
     {
@@ -217,7 +223,8 @@ trait Card
         $params = [
             'payment' => [
                 'operation' => self::OPERATION_RECUR,
-                'intent' => $this->configuration->getAutoCapture() ? self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
+                'intent' => $this->configuration->getAutoCapture() ?
+                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
                 'currency' => $order->getCurrency(),
                 'amount' => $order->getAmountInCents(),
                 'vatAmount' => $order->getVatAmountInCents(),
@@ -266,6 +273,7 @@ trait Card
      *
      * @return Response
      * @throws \Exception
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function initiateCreditCardUnscheduledPurchase($orderId, $recurrenceToken, $paymentToken = null)
     {
@@ -275,7 +283,8 @@ trait Card
         $params = [
             'payment' => [
                 'operation' => self::OPERATION_UNSCHEDULED_PURCHASE,
-                'intent' => $this->configuration->getAutoCapture() ? self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
+                'intent' => $this->configuration->getAutoCapture() ?
+                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
                 'currency' => $order->getCurrency(),
                 'amount' => $order->getAmountInCents(),
                 'vatAmount' => $order->getVatAmountInCents(),

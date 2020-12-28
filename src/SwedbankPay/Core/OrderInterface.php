@@ -2,7 +2,6 @@
 
 namespace SwedbankPay\Core;
 
-
 /**
  * Interface OrderInterface
  * @package SwedbankPay\Core
@@ -106,7 +105,7 @@ interface OrderInterface
     /**
      * Order Fields
      */
-	const PAYMENT_METHOD = 'payment_method';
+    const PAYMENT_METHOD = 'payment_method';
     const ITEMS = 'items';
     const LANGUAGE = 'language';
     const ORDER_ID = 'order_id';

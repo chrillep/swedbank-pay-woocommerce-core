@@ -4,7 +4,7 @@ namespace SwedbankPay\Core\Order;
 
 interface PayeeInfoInterface
 {
-    // 	The ID of the payee, usually the merchant ID.
+    //  The ID of the payee, usually the merchant ID.
     const PAYEE_ID = 'payeeId';
 
     // A unique reference from the merchant system. It is set per operation to ensure

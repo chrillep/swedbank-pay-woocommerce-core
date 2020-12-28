@@ -183,5 +183,4 @@ class OrderItem extends Data implements OrderItemInterface
     {
         return $this->setData(OrderItemInterface::FIELD_VAT_AMOUNT, $vat);
     }
-
 }

@@ -34,7 +34,7 @@ class PlatformUrls extends Data implements PlatformUrlsInterface
     {
         $urls = [];
 
-        foreach ($this->getData() as $key => $url) {
+        foreach ($this->getData() as $url) {
             if (filter_var($url, FILTER_VALIDATE_URL)) {
                 $parsed = parse_url($url);
                 $urls[] = sprintf('%s://%s', $parsed['scheme'], $parsed['host']);

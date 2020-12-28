@@ -9,6 +9,7 @@ use SwedbankPay\Core\Order;
 
 use SwedbankPay\Api\Service\Payment\Resource\Collection\PricesCollection;
 use SwedbankPay\Api\Service\Payment\Resource\Collection\Item\PriceItem;
+use SwedbankPay\Api\Service\Payment\Resource\Request\Metadata;
 use SwedbankPay\Api\Service\Trustly\Request\Purchase;
 use SwedbankPay\Api\Service\Trustly\Resource\Request\PaymentPayeeInfo;
 use SwedbankPay\Api\Service\Trustly\Resource\Request\PaymentPrefillInfo;
@@ -60,6 +61,9 @@ trait Trustly
         $prices = new PricesCollection();
         $prices->addItem($price);
 
+        $metadata = new Metadata();
+        $metadata->setData('order_id', $order->getOrderId());
+
         $payment = new Payment();
         $payment->setOperation(self::OPERATION_PURCHASE)
             ->setIntent(self::INTENT_SALE)
@@ -70,7 +74,8 @@ trait Trustly
             ->setUrls($url)
             ->setPayeeInfo($payeeInfo)
             ->setPrefillInfo($prefillInfo)
-            ->setPrices($prices);
+            ->setPrices($prices)
+            ->setMetadata($metadata);
 
         $paymentObject = new PaymentObject();
         $paymentObject->setPayment($payment);
@@ -92,5 +97,4 @@ trait Trustly
             throw new Exception($e->getMessage());
         }
     }
-
 }
