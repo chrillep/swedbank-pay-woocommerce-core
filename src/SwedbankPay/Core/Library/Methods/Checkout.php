@@ -34,6 +34,7 @@ trait Checkout
 
         $params = [
             'paymentorder' => [
+                'initiatingSystemUserAgent' => $this->adapter->getInitiatingSystemUserAgent(),
                 'operation' => self::OPERATION_PURCHASE,
                 'currency' => $order->getCurrency(),
                 'amount' => $order->getAmountInCents(),

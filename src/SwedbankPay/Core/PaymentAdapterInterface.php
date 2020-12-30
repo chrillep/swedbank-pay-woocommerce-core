@@ -31,6 +31,13 @@ interface PaymentAdapterInterface
     public function log($level, $message, array $context = []);
 
     /**
+     * Get Initiating System User Agent.
+     *
+     * @return string
+     */
+    public function getInitiatingSystemUserAgent();
+
+    /**
      * Get Adapter Configuration.
      *
      * @return array

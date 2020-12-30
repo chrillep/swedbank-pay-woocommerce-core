@@ -68,7 +68,8 @@ trait Swish
         $swish->setEcomOnlyEnabled($ecomOnlyEnabled);
 
         $payment = new Payment();
-        $payment->setOperation(self::OPERATION_PURCHASE)
+        $payment->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
+            ->setOperation(self::OPERATION_PURCHASE)
             ->setIntent(self::INTENT_SALE)
             ->setCurrency($order->getCurrency())
             ->setDescription($order->getDescription())

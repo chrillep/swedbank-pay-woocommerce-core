@@ -43,6 +43,15 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
     }
 
     /**
+     * Get Initiating System User Agent.
+     * @return string
+     */
+    public function getInitiatingSystemUserAgent()
+    {
+        return 'Test adapter';
+    }
+
+    /**
      * Get Adapter Configuration.
      *
      * @return array
