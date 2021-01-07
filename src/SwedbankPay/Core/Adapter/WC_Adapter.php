@@ -73,6 +73,37 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
     }
 
     /**
+     * Get Initiating System User Agent.
+     *
+     * @return string
+     */
+    public function getInitiatingSystemUserAgent()
+    {
+        include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+
+        switch ($this->gateway->id) {
+            case 'payex_checkout':
+                $plugins = get_plugins();
+                foreach ($plugins as $file => $plugin) {
+                    if (strpos($file, 'swedbank-pay-woocommerce-checkout.php') !== false) {
+                        return 'swedbankpay-woocommerce-checkout/' . $plugin['Version'];
+                    }
+                }
+
+                return '';
+            default:
+                $plugins = get_plugins();
+                foreach ($plugins as $file => $plugin) {
+                    if (strpos($file, 'swedbank-pay-woocommerce-payments.php') !== false) {
+                        return 'swedbankpay-woocommerce-payments/' . $plugin['Version'];
+                    }
+                }
+
+                return '';
+        }
+    }
+
+    /**
      * Get Adapter Configuration.
      *
      * @return array

@@ -30,6 +30,7 @@ trait Card
         // Process payment
         $params = [
             'payment' => [
+                'initiatingSystemUserAgent' => $this->adapter->getInitiatingSystemUserAgent(),
                 'operation' => self::OPERATION_PURCHASE,
                 'intent' => $this->configuration->getAutoCapture() ?
                     self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
