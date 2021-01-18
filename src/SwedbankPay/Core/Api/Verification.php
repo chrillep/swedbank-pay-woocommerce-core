@@ -70,4 +70,124 @@ class Verification extends Data implements VerificationInterface
     {
         return $this->getData(self::EXPIRY_DATE);
     }
+
+    /**
+     * Get Direct.
+     *
+     * @return bool|null
+     */
+    public function getDirect()
+    {
+        return $this->getData(self::DIRECT);
+    }
+
+    /**
+     * Get Card Type: Debit or Credit.
+     *
+     * @return string
+     */
+    public function getCardType()
+    {
+        return $this->getData(self::CARD_TYPE);
+    }
+
+    /**
+     * Get Pan Token.
+     *
+     * @return string
+     */
+    public function getPanToken()
+    {
+        return $this->getData(self::PAN_TOKEN);
+    }
+
+    /**
+     * Get Is Pan Enrolled.
+     *
+     * @return bool
+     */
+    public function getPanEnrolled()
+    {
+        return $this->getData(self::PAN_ENROLLED);
+    }
+
+    /**
+     * Get Authentication Status.
+     *
+     * @return string
+     */
+    public function getAuthenticationStatus()
+    {
+        return $this->getData(self::AUTHENTICATION_STATUS);
+    }
+
+    /**
+     * Get Issuer Auth Code.
+     *
+     * @return string
+     */
+    public function getIssuerAuthCode()
+    {
+        return $this->getData(self::ISSUER_AUTH_CODE);
+    }
+
+    /**
+     * Get Acquirer Transaction Type.
+     *
+     * @return string
+     */
+    public function getAcquirerTransactionType()
+    {
+        return $this->getData(self::ACQUIRER_TRANSACTION_TYPE);
+    }
+
+    /**
+     * Get Acquirer Stan.
+     *
+     * @return string
+     */
+    public function getAcquirerStan()
+    {
+        return $this->getData(self::ACQUIRER_STAN);
+    }
+
+    /**
+     * Get Acquirer Terminal Id.
+     *
+     * @return string
+     */
+    public function getAcquirerTerminalId()
+    {
+        return $this->getData(self::ACQUIRER_TERMINAL_ID);
+    }
+
+    /**
+     * Get Acquirer Transaction Time.
+     *
+     * @return string
+     */
+    public function getAcquirerTransactionTime()
+    {
+        return $this->getData(self::ACQUIRER_TRANSACTION_TIME);
+    }
+
+    /**
+     * Get Transaction Initiator.
+     *
+     * @return string
+     */
+    public function getTransactionInitiator()
+    {
+        return $this->getData(self::TRANSACTION_INITIATOR);
+    }
+
+    /**
+     * Get Transaction data.
+     *
+     * @return Transaction
+     */
+    public function getTransaction()
+    {
+        return new Transaction($this->getData(self::TRANSACTION));
+    }
 }

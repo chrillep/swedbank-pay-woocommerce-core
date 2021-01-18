@@ -9,8 +9,18 @@ interface VerificationInterface
     const CARD_BRAND = 'cardBrand';
     const MASKED_PAN = 'maskedPan';
     const EXPIRY_DATE = 'expiryDate';
-
-    // @todo Add more consts
+    const TRANSACTION = 'transaction';
+    const DIRECT = 'direct';
+    const CARD_TYPE = 'cardType';
+    const PAN_TOKEN = 'panToken';
+    const PAN_ENROLLED = 'panEnrolled';
+    const AUTHENTICATION_STATUS = 'authenticationStatus';
+    const ISSUER_AUTH_CODE = 'issuerAuthorizationApprovalCode';
+    const ACQUIRER_TRANSACTION_TYPE = 'acquirerTransactionType';
+    const ACQUIRER_STAN = 'acquirerStan';
+    const ACQUIRER_TERMINAL_ID = 'acquirerTerminalId';
+    const ACQUIRER_TRANSACTION_TIME = 'acquirerTransactionTime';
+    const TRANSACTION_INITIATOR = 'transactionInitiator';
 
     /**
      * Get Payment Token.
@@ -46,4 +56,88 @@ interface VerificationInterface
      * @return array
      */
     public function getExpireDate();
+
+    /**
+     * Get Direct.
+     *
+     * @return bool|null
+     */
+    public function getDirect();
+
+    /**
+     * Get Card Type: Debit or Credit.
+     *
+     * @return string
+     */
+    public function getCardType();
+
+    /**
+     * Get Pan Token.
+     *
+     * @return string
+     */
+    public function getPanToken();
+
+    /**
+     * Get Is Pan Enrolled.
+     *
+     * @return bool
+     */
+    public function getPanEnrolled();
+
+    /**
+     * Get Authentication Status.
+     *
+     * @return string
+     */
+    public function getAuthenticationStatus();
+
+    /**
+     * Get Issuer Auth Code.
+     *
+     * @return string
+     */
+    public function getIssuerAuthCode();
+
+    /**
+     * Get Acquirer Transaction Type.
+     *
+     * @return string
+     */
+    public function getAcquirerTransactionType();
+
+    /**
+     * Get Acquirer Stan.
+     *
+     * @return string
+     */
+    public function getAcquirerStan();
+
+    /**
+     * Get Acquirer Terminal Id.
+     *
+     * @return string
+     */
+    public function getAcquirerTerminalId();
+
+    /**
+     * Get Acquirer Transaction Time.
+     *
+     * @return string
+     */
+    public function getAcquirerTransactionTime();
+
+    /**
+     * Get Transaction Initiator.
+     *
+     * @return string
+     */
+    public function getTransactionInitiator();
+
+    /**
+     * Get Transaction data.
+     *
+     * @return Transaction
+     */
+    public function getTransaction();
 }
