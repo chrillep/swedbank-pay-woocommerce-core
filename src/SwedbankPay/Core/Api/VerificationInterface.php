@@ -83,7 +83,7 @@ interface VerificationInterface
      *
      * @return bool
      */
-    public function getPanEnrolled();
+    public function isPanEnrolled();
 
     /**
      * Get Authentication Status.

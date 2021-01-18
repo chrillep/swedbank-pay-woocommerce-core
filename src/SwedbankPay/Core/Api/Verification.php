@@ -106,7 +106,7 @@ class Verification extends Data implements VerificationInterface
      *
      * @return bool
      */
-    public function getPanEnrolled()
+    public function isPanEnrolled()
     {
         return $this->getData(self::PAN_ENROLLED);
     }
