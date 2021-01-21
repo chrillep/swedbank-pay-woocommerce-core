@@ -616,7 +616,7 @@ trait OrderAction
                 $verifications = $this->fetchVerificationList($order->getPaymentId());
                 foreach ($verifications as $verification) {
                     // Skip verification which failed transaction state
-                    if ($verification->getTranaction()->isFailed()) {
+                    if ($verification->getTransaction()->isFailed()) {
                         continue;
                     }
 
