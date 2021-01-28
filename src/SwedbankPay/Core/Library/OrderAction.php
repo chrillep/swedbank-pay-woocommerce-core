@@ -525,6 +525,7 @@ trait OrderAction
      * @param mixed $orderId
      * @param string|null $transactionNumber
      * @throws Exception
+     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function fetchTransactionsAndUpdateOrder($orderId, $transactionNumber = null)
     {
