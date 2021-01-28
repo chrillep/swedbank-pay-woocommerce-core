@@ -622,6 +622,11 @@ trait OrderAction
                 // Save Payment Token
                 $verifications = $this->fetchVerificationList($order->getPaymentId());
                 foreach ($verifications as $verification) {
+                    // Skip verification which failed transaction state
+                    if ($verification->getTransaction()->isFailed()) {
+                        continue;
+                    }
+
                     if ($verification->getPaymentToken() || $verification->getRecurrenceToken()) {
                         // Add payment token
                         $this->adapter->savePaymentToken(
