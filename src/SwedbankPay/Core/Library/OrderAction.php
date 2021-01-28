@@ -531,7 +531,13 @@ trait OrderAction
         /** @var Order $order */
         $order = $this->getOrder($orderId);
 
-        $paymentId = $order->getPaymentId();
+        // Get Payment ID
+        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+            $paymentId = $this->getPaymentIdByPaymentOrder($order->getPaymentOrderId());
+        } else {
+            $paymentId = $order->getPaymentId();
+        }
+
         if (empty($paymentId)) {
             throw new Exception('Unable to get payment ID');
         }
