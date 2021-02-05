@@ -608,7 +608,16 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         $order = wc_get_order($orderId);
 
         if ($transactionNumber) {
-            $order->update_meta_data('_transaction_id', $transactionNumber);
+            $transactions = (array) $order->get_meta('_sb_transactions');
+            if (in_array($transactionNumber, $transactions)) {
+                $this->log('info', 'Skip order status update', [$orderId, $transactionNumber]);
+                return;
+            }
+
+            $transactions[] = $transactionNumber;
+
+            $order->update_meta_data('_transaction_id', $transactions);
+            $order->update_meta_data('_sb_transactions', $transactions);
             $order->save();
         }
 
