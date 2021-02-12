@@ -1,3 +1,10 @@
+Version 3.0.1
+* Add InitiatingSystemUserAgent
+* Ignore verifications which have failed transaction state
+* Rename `getPanEnrolled` to `isPanEnrolled()`
+* Update `fetchTransactionsAndUpdateOrder` to allow use paymentId of the checkout
+* Save transactions which have been processed on the order
+
 Version 3.0.0
 * Renamed `getMerchantToken()` to `getAccessToken()`
 
