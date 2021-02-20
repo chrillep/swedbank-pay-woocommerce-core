@@ -17,14 +17,14 @@ interface ConsumerInterface
      * Initiate consumer session.
      *
      * @param string $language
-     * @param bool $requireShippingAddress
-     * @param array $shippingAddressRestrictedToCountryCodes
+     * @param bool $requireShipping
+     * @param array $shippingCountries
      * @return Response
      * @throws Exception
      */
     public function initiateConsumerSession(
         $language,
-        $requireShippingAddress,
-        $shippingAddressRestrictedToCountryCodes = []
+        $requireShipping,
+        $shippingCountries = []
     );
 }
