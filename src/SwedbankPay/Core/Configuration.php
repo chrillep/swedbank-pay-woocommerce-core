@@ -11,6 +11,7 @@ namespace SwedbankPay\Core;
  * @method string getPayeeName()
  * @method bool getMode()
  * @method bool getAutoCapture()
+ * @method string getMethod()
  * @method string getSubsite()
  * @method string getLanguage()
  * @method string getSaveCC()

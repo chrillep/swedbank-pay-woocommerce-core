@@ -99,6 +99,7 @@ class Core implements
             ConfigurationInterface::REJECT_DEBIT_CARDS => false,
             ConfigurationInterface::REJECT_CONSUMER_CARDS => false,
             ConfigurationInterface::REJECT_CORPORATE_CARDS => false,
+            ConfigurationInterface::CHECKOUT_METHOD => null,
         ];
 
         $result = $this->adapter->getConfiguration();

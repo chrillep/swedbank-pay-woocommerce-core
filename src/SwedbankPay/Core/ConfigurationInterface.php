@@ -38,9 +38,17 @@ interface ConfigurationInterface
     const LOGO_URL = 'logo_url';
     const USE_PAYER_INFO = 'use_payer_info';
     const USE_CARDHOLDER_INFO = 'use_cardholder_info';
+    const CHECKOUT_METHOD = 'method';
 
     const REJECT_CREDIT_CARDS = 'reject_credit_cards';
     const REJECT_DEBIT_CARDS = 'reject_debit_cards';
     const REJECT_CONSUMER_CARDS = 'reject_consumer_cards';
     const REJECT_CORPORATE_CARDS = 'reject_corporate_cards';
+
+    /**
+     * Checkout Methods
+     */
+    const METHOD_DIRECT = 'direct';
+    const METHOD_REDIRECT = 'redirect';
+    const METHOD_SEAMLESS = 'seamless';
 }

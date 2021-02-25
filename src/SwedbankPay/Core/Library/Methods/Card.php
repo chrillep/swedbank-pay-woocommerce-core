@@ -3,6 +3,7 @@
 namespace SwedbankPay\Core\Library\Methods;
 
 use SwedbankPay\Core\Api\Response;
+use SwedbankPay\Core\ConfigurationInterface;
 use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
 use SwedbankPay\Core\Order;
@@ -73,6 +74,12 @@ trait Card
                 ],
             ]
         ];
+
+        if ($this->configuration->getData(ConfigurationInterface::CHECKOUT_METHOD) ===
+            ConfigurationInterface::METHOD_SEAMLESS
+        ) {
+            $params['payment']['urls']['paymentUrl'] = $urls->getPaymentUrl();
+        }
 
         if ($this->configuration->getUseCardholderInfo()) {
             $params['payment']['cardholder'] = [
