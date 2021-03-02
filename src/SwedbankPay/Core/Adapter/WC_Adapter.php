@@ -174,7 +174,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
                 PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
                 PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
-                PlatformUrlsInterface::PAYMENT_URL => add_query_arg( array( 'payment_url' => '1' ), wc_get_checkout_url() )
+                PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
             );
         }
 
@@ -191,7 +191,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
                 PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
                 PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
-                PlatformUrlsInterface::PAYMENT_URL => add_query_arg( array( 'payment_url' => '1' ), wc_get_checkout_url() )
+                PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
             );
         }
 
@@ -201,7 +201,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
             PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
             PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
-            PlatformUrlsInterface::PAYMENT_URL => add_query_arg( array( 'payment_url' => '1' ), wc_get_checkout_url() )
+            PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
         );
     }
 
