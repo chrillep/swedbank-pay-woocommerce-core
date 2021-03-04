@@ -121,6 +121,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             ConfigurationInterface::AUTO_CAPTURE => 'yes' === $this->gateway->auto_capture,
             ConfigurationInterface::SUBSITE => $this->gateway->subsite,
             ConfigurationInterface::LANGUAGE => $this->gateway->culture,
+            ConfigurationInterface::CHECKOUT_METHOD => $this->gateway->method,
             ConfigurationInterface::SAVE_CC => property_exists($this->gateway, 'save_cc') ?
                 'yes' === $this->gateway->save_cc : false,
             ConfigurationInterface::TERMS_URL => property_exists($this->gateway, 'terms_url') ?
@@ -173,6 +174,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
                 PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
                 PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
+                PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
             );
         }
 
@@ -189,6 +191,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
                 PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
                 PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
+                PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
             );
         }
 
@@ -198,6 +201,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
             PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
             PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
+            PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
         );
     }
 

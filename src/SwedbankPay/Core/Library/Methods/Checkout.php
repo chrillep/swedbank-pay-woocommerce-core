@@ -51,6 +51,7 @@ trait Checkout
                     'callbackUrl' => $urls->getCallbackUrl(),
                     'termsOfServiceUrl' => $urls->getTermsUrl(),
                     'logoUrl' => $urls->getLogoUrl(),
+                    'paymentUrl' => $urls->getPaymentUrl()
                 ],
                 'payeeInfo' => $this->getPayeeInfo($orderId)->toArray(),
                 'orderItems' => $order->getItems(),
@@ -136,6 +137,7 @@ trait Checkout
                     'callbackUrl' => $urls->getCallbackUrl(),
                     'termsOfServiceUrl' => $urls->getTermsUrl(),
                     'logoUrl' => $urls->getLogoUrl(),
+                    'paymentUrl' => $urls->getPaymentUrl()
                 ],
                 'payeeInfo' => $this->getPayeeInfo($orderId)->toArray(),
                 'riskIndicator' => $this->getRiskIndicator($orderId)->toArray(),

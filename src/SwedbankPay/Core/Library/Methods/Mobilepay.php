@@ -3,6 +3,7 @@
 namespace SwedbankPay\Core\Library\Methods;
 
 use SwedbankPay\Core\Api\Response;
+use SwedbankPay\Core\ConfigurationInterface;
 use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
 use SwedbankPay\Core\Order;
@@ -46,6 +47,12 @@ trait Mobilepay
             ->setCancelUrl($urls->getCancelUrl())
             ->setCallbackUrl($urls->getCallbackUrl())
             ->setHostUrls($urls->getHostUrls());
+
+        if ($this->configuration->getData(ConfigurationInterface::CHECKOUT_METHOD) ===
+            ConfigurationInterface::METHOD_SEAMLESS
+        ) {
+            $url->setPaymentUrl($urls->getPaymentUrl());
+        }
 
         $payeeInfo = new PaymentPayeeInfo($this->getPayeeInfo($orderId)->toArray());
 

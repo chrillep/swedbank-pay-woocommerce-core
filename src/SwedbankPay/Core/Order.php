@@ -5,6 +5,7 @@ namespace SwedbankPay\Core;
 /**
  * Class Order
  * @package SwedbankPay\Core
+ * @method string|null getPaymentMethod()
  * @method mixed getOrderId()
  * @method float getAmount()
  * @method float getVatAmount()
