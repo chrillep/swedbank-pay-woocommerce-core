@@ -5,6 +5,7 @@ namespace SwedbankPay\Core;
 use SwedbankPay\Api\Client\Client;
 use SwedbankPay\Core\Library\Methods\CardInterface;
 use SwedbankPay\Core\Library\Methods\CheckoutInterface;
+use SwedbankPay\Core\Library\Methods\ConsumerInterface;
 use SwedbankPay\Core\Library\Methods\InvoiceInterface;
 use SwedbankPay\Core\Library\Methods\SwishInterface;
 use SwedbankPay\Core\Library\Methods\Trustly;
@@ -35,7 +36,8 @@ class Core implements
     MobilepayInterface,
     SwishInterface,
     TrustlyInterface,
-    VippsInterface
+    VippsInterface,
+    ConsumerInterface
 {
     use PaymentInfo;
     use Card;

@@ -11,20 +11,26 @@ trait Consumer
     /**
      * Initiate consumer session.
      *
-     * @param string $countryCode
-     *
+     * @param string $language
+     * @param bool $requireShipping
+     * @param array $shippingCountries
      * @return Response
      * @throws Exception
      */
-    public function initiateConsumerSession($countryCode)
-    {
+    public function initiateConsumerSession(
+        $language,
+        $requireShipping,
+        $shippingCountries = []
+    ) {
         $params = [
             'operation' => 'initiate-consumer-session',
-            'consumerCountryCode' => $countryCode,
+            'language' => $language,
+            'shippingAddressRestrictedToCountryCodes' => $shippingCountries,
+            'requireShippingAddress' => $requireShipping
         ];
 
         try {
-            $result = $this->request('POST', '/psp/consumers', $params);
+            $result = $this->request('POST', self::CONSUMERS_URL, $params);
         } catch (\SwedbankPay\Core\Exception $e) {
             $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
 
