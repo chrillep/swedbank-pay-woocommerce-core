@@ -24,7 +24,7 @@ class MobilepayTest extends TestCase
 
     public function testInitiateMobilepayPayment()
     {
-        $this->gateway->currency = 'DDK';
+        $this->gateway->currency = 'DKK';
         $result = $this->core->initiateMobilepayPayment(1, '+4581555853');
         $this->assertInstanceOf(Response::class, $result);
         $this->assertArrayHasKey('payment', $result);
