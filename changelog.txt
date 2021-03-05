@@ -1,3 +1,7 @@
+Version 3.1.0
+* Implemented `paymentUrl` feature
+* Update `initiateConsumerSession()` method
+
 Version 3.0.1
 * Add InitiatingSystemUserAgent
 * Ignore verifications which have failed transaction state
