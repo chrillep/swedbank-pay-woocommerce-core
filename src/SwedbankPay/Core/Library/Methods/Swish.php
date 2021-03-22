@@ -79,7 +79,8 @@ trait Swish
             ->setOperation(self::OPERATION_PURCHASE)
             ->setIntent(self::INTENT_SALE)
             ->setCurrency($order->getCurrency())
-            ->setDescription($order->getDescription())
+            //->setDescription($order->getDescription())
+            ->setDescription('RF07')
             ->setUserAgent($order->getHttpUserAgent())
             ->setLanguage($order->getLanguage())
             ->setUrls($url)
@@ -99,8 +100,18 @@ trait Swish
             /** @var ResponseServiceInterface $responseService */
             $responseService = $purchaseRequest->send();
 
+	        $this->log(
+		        LogLevel::DEBUG,
+		        $purchaseRequest->getClient()->getDebugInfo()
+	        );
+
             return new Response($responseService->getResponseData());
         } catch (\Exception $e) {
+	        $this->log(
+		        LogLevel::DEBUG,
+		        $purchaseRequest->getClient()->getDebugInfo()
+	        );
+
             $this->log(
                 LogLevel::DEBUG,
                 sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())

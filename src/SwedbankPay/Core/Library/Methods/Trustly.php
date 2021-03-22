@@ -95,8 +95,18 @@ trait Trustly
             /** @var ResponseServiceInterface $responseService */
             $responseService = $purchaseRequest->send();
 
+	        $this->log(
+		        LogLevel::DEBUG,
+		        $purchaseRequest->getClient()->getDebugInfo()
+	        );
+
             return new Response($responseService->getResponseData());
         } catch (\Exception $e) {
+	        $this->log(
+		        LogLevel::DEBUG,
+		        $purchaseRequest->getClient()->getDebugInfo()
+	        );
+
             $this->log(
                 LogLevel::DEBUG,
                 sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
