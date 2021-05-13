@@ -258,7 +258,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             // Get Product Class
             $productClass = get_post_meta($orderItem->get_product()->get_id(), '_sb_product_class', true);
             if (empty($productClass)) {
-                $productClass = apply_filters('sbp_product_class', 'ProductGroup1', $orderItem->get_product());
+                $productClass = apply_filters('sb_product_class', 'ProductGroup1', $orderItem->get_product());
             }
 
             // Get Product Sku
@@ -308,7 +308,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                     'woocommerce'
                 ),
                 OrderItemInterface::FIELD_TYPE => OrderItemInterface::TYPE_SHIPPING,
-                OrderItemInterface::FIELD_CLASS => apply_filters('sbp_product_class_shipping', 'ProductGroup1', $order),
+                OrderItemInterface::FIELD_CLASS => apply_filters('sb_product_class_shipping', 'ProductGroup1', $order),
                 OrderItemInterface::FIELD_QTY => 1,
                 OrderItemInterface::FIELD_QTY_UNIT => 'pcs',
                 OrderItemInterface::FIELD_UNITPRICE => round($shippingWithTax * 100),
@@ -330,7 +330,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 OrderItemInterface::FIELD_REFERENCE => 'fee',
                 OrderItemInterface::FIELD_NAME => $orderFee->get_name(),
                 OrderItemInterface::FIELD_TYPE => OrderItemInterface::TYPE_OTHER,
-                OrderItemInterface::FIELD_CLASS => apply_filters('sbp_product_class_fee', 'ProductGroup1', $order),
+                OrderItemInterface::FIELD_CLASS => apply_filters('sb_product_class_fee', 'ProductGroup1', $order),
                 OrderItemInterface::FIELD_QTY => 1,
                 OrderItemInterface::FIELD_QTY_UNIT => 'pcs',
                 OrderItemInterface::FIELD_UNITPRICE => round($feeWithTax * 100),
@@ -351,7 +351,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 OrderItemInterface::FIELD_REFERENCE => 'discount',
                 OrderItemInterface::FIELD_NAME => __('Discount', 'swedbank-pay-woocommerce-payments'),
                 OrderItemInterface::FIELD_TYPE => OrderItemInterface::TYPE_DISCOUNT,
-                OrderItemInterface::FIELD_CLASS => apply_filters('sbp_product_class_discount', 'ProductGroup1', $order),
+                OrderItemInterface::FIELD_CLASS => apply_filters('sb_product_class_discount', 'ProductGroup1', $order),
                 OrderItemInterface::FIELD_QTY => 1,
                 OrderItemInterface::FIELD_QTY_UNIT => 'pcs',
                 OrderItemInterface::FIELD_UNITPRICE => round(-100 * $discountWithTax),
