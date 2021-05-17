@@ -482,30 +482,30 @@ trait Checkout
             throw new Exception('Refund is unavailable');
         }
 
-	    if (!$amount) {
-		    $amount = $order->getAmount();
-		    $vatAmount = $order->getVatAmount();
-	    }
+        if (!$amount) {
+            $amount = $order->getAmount();
+            $vatAmount = $order->getVatAmount();
+        }
 
         // Use all order items if undefined
         if (count($items) === 0) {
             $items = $order->getItems();
 
-	        // Recalculate amount and VAT amount
-	        $amount = 0;
-	        $vatAmount = 0;
-	        foreach ($items as $key => $item) {
-		        $amount += $item->getAmount();
-		        $vatAmount += $item->getVatAmount();
+            // Recalculate amount and VAT amount
+            $amount = 0;
+            $vatAmount = 0;
+            foreach ($items as $key => $item) {
+                $amount += $item->getAmount();
+                $vatAmount += $item->getVatAmount();
 
-		        if ($item->getData('restrictedToInstruments')) {
-			        $item->unsData('restrictedToInstruments');
-			        $items[$key] = $item;
-		        }
-	        }
+                if ($item->getData('restrictedToInstruments')) {
+                    $item->unsData('restrictedToInstruments');
+                    $items[$key] = $item;
+                }
+            }
 
-	        $amount = $amount / 100;
-	        $vatAmount = $vatAmount / 100;
+            $amount = $amount / 100;
+            $vatAmount = $vatAmount / 100;
         }
 
         $params = [
