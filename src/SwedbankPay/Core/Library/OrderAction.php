@@ -92,12 +92,12 @@ trait OrderAction
         // @todo Check payment state
 
         // Check refund amount
-        $result = $this->fetchTransactionsList($order->getPaymentId());
+        $transactions = $this->fetchTransactionsList($order->getPaymentId());
 
         $refunded = 0;
-        foreach ($result['transactions']['transactionList'] as $transaction) {
-            if ($transaction['type'] === 'Reversal') {
-                $refunded += ($transaction['amount'] / 100);
+        foreach ($transactions as $transaction) {
+            if ($transaction->getType() === $transaction::TYPE_REVERSAL) {
+                $refunded += ($transaction->getAmount() / 100);
             }
         }
 
