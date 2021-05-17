@@ -464,6 +464,7 @@ trait Checkout
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.ElseExpression)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function refundCheckout($orderId, $amount = null, $vatAmount = 0, array $items = [])
     {
