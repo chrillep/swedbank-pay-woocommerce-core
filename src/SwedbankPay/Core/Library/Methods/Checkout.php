@@ -464,16 +464,12 @@ trait Checkout
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.ElseExpression)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function refundCheckout($orderId, $amount = null, $vatAmount = 0, array $items = [])
     {
         /** @var Order $order */
         $order = $this->getOrder($orderId);
-
-        if (!$amount) {
-            $amount = $order->getAmount();
-            $vatAmount = $order->getVatAmount();
-        }
 
         $paymentOrderId = $order->getPaymentOrderId();
         if (empty($paymentOrderId)) {
@@ -487,16 +483,35 @@ trait Checkout
             throw new Exception('Refund is unavailable');
         }
 
-        // @todo Partial Refund
+        if (!$amount) {
+            $amount = $order->getAmount();
+            $vatAmount = $order->getVatAmount();
+        }
 
         // Use all order items if undefined
         if (count($items) === 0) {
             $items = $order->getItems();
+
+            // Recalculate amount and VAT amount
+            $amount = 0;
+            $vatAmount = 0;
+            foreach ($items as $key => $item) {
+                $amount += $item->getAmount();
+                $vatAmount += $item->getVatAmount();
+
+                if ($item->getData('restrictedToInstruments')) {
+                    $item->unsData('restrictedToInstruments');
+                    $items[$key] = $item;
+                }
+            }
+
+            $amount = $amount / 100;
+            $vatAmount = $vatAmount / 100;
         }
 
         $params = [
             'transaction' => [
-                'description' => sprintf('Refund for Order #%s', $order->getOrderId()),
+                'description' => sprintf('Refund for Order #%s. Amount: %s', $order->getOrderId(), $amount),
                 'amount' => (int)bcmul(100, $amount),
                 'vatAmount' => (int)bcmul(100, $vatAmount),
                 'payeeReference' => $this->generatePayeeReference($orderId),
