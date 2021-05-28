@@ -287,9 +287,8 @@ trait Card
             ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
             ->setOperation(self::OPERATION_RECUR)
             ->setIntent(
-                $this->configuration->getAutoCapture() ?
-                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION
-                )
+                $this->configuration->getAutoCapture() ? self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION
+            )
             ->setCurrency($order->getCurrency())
             ->setAmount($order->getAmountInCents())
             ->setVatAmount($order->getVatAmountInCents())
