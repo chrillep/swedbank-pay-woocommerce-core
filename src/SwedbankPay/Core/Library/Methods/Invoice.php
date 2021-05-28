@@ -491,6 +491,7 @@ trait Invoice
      * @throws Exception
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function refundInvoice($orderId, $amount = null, $vatAmount = 0)
