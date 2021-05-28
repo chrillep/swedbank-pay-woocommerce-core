@@ -42,6 +42,7 @@ trait Checkout
      * @throws Exception
      * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
      * @SuppressWarnings(PHPMD.LongVariable)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function initiatePaymentOrderPurchase(
         $orderId,
@@ -271,6 +272,7 @@ trait Checkout
      *
      * @return Response
      * @throws \Exception
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function initiatePaymentOrderRecur($orderId, $recurrenceToken)
     {
@@ -466,6 +468,9 @@ trait Checkout
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function captureCheckout($orderId, $amount = null, $vatAmount = 0, array $items = [])
     {
@@ -586,6 +591,7 @@ trait Checkout
      * @throws Exception
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function cancelCheckout($orderId, $amount = null, $vatAmount = 0)
     {

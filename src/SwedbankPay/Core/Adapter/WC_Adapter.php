@@ -22,6 +22,8 @@ use WC_Order_Item_Fee;
  * @package SwedbankPay\Core\Adapter
  * @SuppressWarnings(PHPMD.CamelCaseClassName)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.ExcessiveClassLength)
+ * @SuppressWarnings(PHPMD.TooManyMethods)
  */
 // phpcs:ignore
 class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface

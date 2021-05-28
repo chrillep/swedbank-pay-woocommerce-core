@@ -271,6 +271,7 @@ trait Invoice
      * @throws Exception
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function captureInvoice($orderId, $amount = null, $vatAmount = 0, array $items = [])
     {
@@ -389,6 +390,7 @@ trait Invoice
      * @throws Exception
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function cancelInvoice($orderId, $amount = null, $vatAmount = 0)
     {
