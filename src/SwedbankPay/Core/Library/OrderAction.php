@@ -12,6 +12,16 @@ use SwedbankPay\Core\Order;
 use SwedbankPay\Core\OrderInterface;
 use SwedbankPay\Core\PaymentAdapterInterface;
 
+use SwedbankPay\Api\Client\Exception as ClientException;
+use SwedbankPay\Api\Service\Data\ResponseInterface as ResponseServiceInterface;
+use SwedbankPay\Api\Service\Payment\Transaction\Resource\Request\TransactionObject;
+use SwedbankPay\Api\Service\Creditcard\Transaction\Request\CreateCapture;
+use SwedbankPay\Api\Service\Creditcard\Transaction\Request\CreateReversal;
+use SwedbankPay\Api\Service\Creditcard\Transaction\Request\CreateCancellation;
+use SwedbankPay\Api\Service\Creditcard\Transaction\Resource\Request\TransactionCapture;
+use SwedbankPay\Api\Service\Creditcard\Transaction\Resource\Request\TransactionReversal;
+use SwedbankPay\Api\Service\Creditcard\Transaction\Resource\Request\TransactionCancellation;
+
 trait OrderAction
 {
     /**
@@ -147,50 +157,72 @@ trait OrderAction
             return $this->captureInvoice($orderId, $amount, $vatAmount);
         }
 
-        $href = $info->getOperationByRel('create-capture');
-        if (empty($href)) {
-            throw new Exception('Capture is unavailable');
+        $transactionData = new TransactionCapture();
+        $transactionData
+            ->setAmount((int)bcmul(100, $amount))
+            ->setVatAmount((int)bcmul(100, $vatAmount))
+            ->setDescription(sprintf('Capture for Order #%s', $order->getOrderId()))
+            ->setPayeeReference($this->generatePayeeReference($orderId));
+
+        $transaction = new TransactionObject();
+        $transaction->setTransaction($transactionData);
+
+        $requestService = new CreateCapture($transaction);
+        $requestService->setClient($this->client);
+        $requestService->setPaymentId($paymentId);
+
+        try {
+            /** @var ResponseServiceInterface $responseService */
+            $responseService = $requestService->send();
+            $this->log(
+                LogLevel::DEBUG,
+                $requestService->getClient()->getDebugInfo()
+            );
+
+            $result = $responseService->getResponseData();
+
+            // Save transaction
+            $transaction = $result['capture']['transaction'];
+            $this->saveTransaction($orderId, $transaction);
+
+
+            switch ($transaction['state']) {
+                case TransactionInterface::STATE_COMPLETED:
+                    $this->updateOrderStatus(
+                        $orderId,
+                        OrderInterface::STATUS_CAPTURED,
+                        sprintf('Transaction is captured. Amount: %s', $amount),
+                        $transaction['number']
+                    );
+                    break;
+                case TransactionInterface::STATE_INITIALIZED:
+                    $this->updateOrderStatus(
+                        $orderId,
+                        OrderInterface::STATUS_AUTHORIZED,
+                        sprintf('Transaction capture status: %s. Amount: %s', $transaction['state'], $amount)
+                    );
+                    break;
+                case TransactionInterface::STATE_FAILED:
+                    $message = $transaction['failedReason'] ?? 'Capture is failed.';
+                    throw new Exception($message);
+                default:
+                    throw new Exception('Capture is failed.');
+            }
+
+            return new Response($result);
+        } catch (ClientException $e) {
+            $this->log(
+                LogLevel::DEBUG,
+                $requestService->getClient()->getDebugInfo()
+            );
+
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
+
+            throw new Exception($e->getMessage());
         }
-
-        $params = [
-            'transaction' => [
-                'amount' => (int)bcmul(100, $amount),
-                'vatAmount' => (int)bcmul(100, $vatAmount),
-                'description' => sprintf('Capture for Order #%s', $order->getOrderId()),
-                'payeeReference' => $this->generatePayeeReference($orderId)
-            ]
-        ];
-
-        $result = $this->request('POST', $href, $params);
-
-        // Save transaction
-        $transaction = $result['capture']['transaction'];
-        $this->saveTransaction($orderId, $transaction);
-
-        switch ($transaction['state']) {
-            case 'Completed':
-                $this->updateOrderStatus(
-                    $orderId,
-                    OrderInterface::STATUS_CAPTURED,
-                    sprintf('Transaction is captured. Amount: %s', $amount),
-                    $transaction['number']
-                );
-                break;
-            case 'Initialized':
-                $this->updateOrderStatus(
-                    $orderId,
-                    OrderInterface::STATUS_AUTHORIZED,
-                    sprintf('Transaction capture status: %s. Amount: %s', $transaction['state'], $amount)
-                );
-                break;
-            case 'Failed':
-                $message = isset($transaction['failedReason']) ? $transaction['failedReason'] : 'Capture is failed.';
-                throw new Exception($message);
-            default:
-                throw new Exception('Capture is failed.');
-        }
-
-        return $result;
     }
 
     /**
@@ -231,49 +263,70 @@ trait OrderAction
             return $this->cancelInvoice($orderId, $amount, $vatAmount);
         }
 
-        $href = $info->getOperationByRel('create-cancellation');
-        if (empty($href)) {
-            throw new Exception('Cancellation is unavailable');
+        $transactionData = new TransactionCancellation();
+        $transactionData
+            ->setDescription(sprintf('Cancellation for Order #%s', $order->getOrderId()))
+            ->setPayeeReference($this->generatePayeeReference($orderId));
+
+        $transaction = new TransactionObject();
+        $transaction->setTransaction($transactionData);
+
+        $requestService = new CreateCancellation($transaction);
+        $requestService->setClient($this->client);
+        $requestService->setPaymentId($paymentId);
+
+        try {
+            /** @var ResponseServiceInterface $responseService */
+            $responseService = $requestService->send();
+            $this->log(
+                LogLevel::DEBUG,
+                $requestService->getClient()->getDebugInfo()
+            );
+
+            $result = $responseService->getResponseData();
+
+            // Save transaction
+            $transaction = $result['cancellation']['transaction'];
+            $this->saveTransaction($orderId, $transaction);
+
+            switch ($transaction['state']) {
+                case TransactionInterface::STATE_COMPLETED:
+                    $this->updateOrderStatus(
+                        $orderId,
+                        OrderInterface::STATUS_CANCELLED,
+                        'Transaction is cancelled.',
+                        $transaction['number']
+                    );
+                    break;
+                case TransactionInterface::STATE_INITIALIZED:
+                case TransactionInterface::STATE_AWAITING_ACTIVITY:
+                    $this->updateOrderStatus(
+                        $orderId,
+                        OrderInterface::STATUS_CANCELLED,
+                        sprintf('Transaction cancellation status: %s.', $transaction['state'])
+                    );
+                    break;
+                case TransactionInterface::STATE_FAILED:
+                    $message = $transaction['failedReason'] ?? 'Cancellation is failed.';
+                    throw new Exception($message);
+                default:
+                    throw new Exception('Cancellation is failed.');
+            }
+
+            return new Response($result);
+        } catch (ClientException $e) {
+            $this->log(
+                LogLevel::DEBUG,
+                $requestService->getClient()->getDebugInfo()
+            );
+
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
+
+            throw new Exception($e->getMessage());
         }
-
-        $params = [
-            'transaction' => [
-                'description' => sprintf('Cancellation for Order #%s', $order->getOrderId()),
-                'payeeReference' => $this->generatePayeeReference($orderId)
-            ],
-        ];
-        $result = $this->request('POST', $href, $params);
-
-        // Save transaction
-        $transaction = $result['cancellation']['transaction'];
-        $this->saveTransaction($orderId, $transaction);
-
-        switch ($transaction['state']) {
-            case 'Completed':
-                $this->updateOrderStatus(
-                    $orderId,
-                    OrderInterface::STATUS_CANCELLED,
-                    'Transaction is cancelled.',
-                    $transaction['number']
-                );
-                break;
-            case 'Initialized':
-            case 'AwaitingActivity':
-                $this->updateOrderStatus(
-                    $orderId,
-                    OrderInterface::STATUS_CANCELLED,
-                    sprintf('Transaction cancellation status: %s.', $transaction['state'])
-                );
-                break;
-            case 'Failed':
-                $message = isset($transaction['failedReason']) ? $transaction['failedReason']
-                    : 'Cancellation is failed.';
-                throw new Exception($message);
-            default:
-                throw new Exception('Capture is failed.');
-        }
-
-        return $result;
     }
 
     /**
@@ -316,71 +369,93 @@ trait OrderAction
             return $this->refundInvoice($orderId, $amount, $vatAmount);
         }
 
-        $href = $info->getOperationByRel('create-reversal');
-        if (empty($href)) {
-            throw new Exception('Refund is unavailable');
-        }
+        $transactionData = new TransactionReversal();
+        $transactionData
+            ->setAmount((int)bcmul(100, $amount))
+            ->setVatAmount((int)bcmul(100, $vatAmount))
+            ->setDescription(sprintf('Refund for Order #%s.', $order->getOrderId()))
+            ->setPayeeReference($this->generatePayeeReference($orderId));
 
-        $params = [
-            'transaction' => [
-                'amount' => (int)bcmul(100, $amount),
-                'vatAmount' => (int)bcmul(100, $vatAmount),
-                'description' => sprintf('Refund for Order #%s.', $order->getOrderId()),
-                'payeeReference' => $this->generatePayeeReference($orderId)
-            ]
-        ];
-        $result = $this->request('POST', $href, $params);
+        $transaction = new TransactionObject();
+        $transaction->setTransaction($transactionData);
 
-        // Save transaction
-        $transaction = $result['reversal']['transaction'];
-        $this->saveTransaction($orderId, $transaction);
+        $requestService = new CreateReversal($transaction);
+        $requestService->setClient($this->client);
+        $requestService->setPaymentId($paymentId);
 
-        switch ($transaction['state']) {
-            case 'Completed':
-                $info = $this->fetchPaymentInfo($paymentId);
+        try {
+            /** @var ResponseServiceInterface $responseService */
+            $responseService = $requestService->send();
+            $this->log(
+                LogLevel::DEBUG,
+                $requestService->getClient()->getDebugInfo()
+            );
 
-                // Check if the payment was refund fully
-                $isFullRefund = false;
-                if (!isset($info['payment']['remainingReversalAmount'])) {
-                    // Failback if `remainingReversalAmount` is missing
-                    if (bccomp($order->getAmount(), $amount, 2) === 0) {
+            $result = $responseService->getResponseData();
+
+            // Save transaction
+            $transaction = $result['reversal']['transaction'];
+            $this->saveTransaction($orderId, $transaction);
+
+            switch ($transaction['state']) {
+                case TransactionInterface::STATE_COMPLETED:
+                    $info = $this->fetchPaymentInfo($paymentId);
+
+                    // Check if the payment was refund fully
+                    $isFullRefund = false;
+                    if (!isset($info['payment']['remainingReversalAmount'])) {
+                        // Failback if `remainingReversalAmount` is missing
+                        if (bccomp($order->getAmount(), $amount, 2) === 0) {
+                            $isFullRefund = true;
+                        }
+                    } elseif ((int) $info['payment']['remainingReversalAmount'] === 0) {
                         $isFullRefund = true;
                     }
-                } elseif ((int) $info['payment']['remainingReversalAmount'] === 0) {
-                    $isFullRefund = true;
-                }
 
-                if ($isFullRefund) {
-                    $this->updateOrderStatus(
-                        $orderId,
-                        OrderInterface::STATUS_REFUNDED,
-                        sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state']),
-                        $transaction['number']
-                    );
-                } else {
+                    if ($isFullRefund) {
+                        $this->updateOrderStatus(
+                            $orderId,
+                            OrderInterface::STATUS_REFUNDED,
+                            sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state']),
+                            $transaction['number']
+                        );
+                    } else {
+                        $this->addOrderNote(
+                            $orderId,
+                            sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state'])
+                        );
+                    }
+
+                    break;
+                case TransactionInterface::STATE_INITIALIZED:
+                case TransactionInterface::STATE_AWAITING_ACTIVITY:
                     $this->addOrderNote(
                         $orderId,
                         sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state'])
                     );
-                }
 
-                break;
-            case 'Initialized':
-            case 'AwaitingActivity':
-                $this->addOrderNote(
-                    $orderId,
-                    sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state'])
-                );
+                    break;
+                case TransactionInterface::STATE_FAILED:
+                    $message = $transaction['failedReason'] ?? 'Refund is failed.';
+                    throw new Exception($message);
+                default:
+                    throw new Exception('Refund is failed.');
+            }
 
-                break;
-            case 'Failed':
-                $message = isset($transaction['failedReason']) ? $transaction['failedReason'] : 'Refund is failed.';
-                throw new Exception($message);
-            default:
-                throw new Exception('Refund is failed.');
+            return new Response($result);
+        } catch (ClientException $e) {
+            $this->log(
+                LogLevel::DEBUG,
+                $requestService->getClient()->getDebugInfo()
+            );
+
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+            );
+
+            throw new Exception($e->getMessage());
         }
-
-        return $result;
     }
 
     /**
@@ -844,14 +919,7 @@ trait OrderAction
     public function generatePayeeReference($orderId)
     {
         // Use the reference from the adapter if exists
-        if (method_exists($this->adapter, 'generatePayeeReference')) {
-            return $this->adapter->generatePayeeReference($orderId);
-        }
-
-        $arr = range('a', 'z');
-        shuffle($arr);
-
-        return $orderId . 'x' . substr(implode('', $arr), 0, 5);
+        return $this->adapter->generatePayeeReference($orderId);
     }
 
     /**

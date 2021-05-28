@@ -16,7 +16,6 @@ use WC_Payment_Gateway;
 use WC_Log_Levels;
 use WC_Order_Item_Product;
 use WC_Order_Item_Fee;
-use WC_Payment_Token_Swedbank_Pay;
 
 /**
  * Class WC_Adapter
@@ -116,30 +115,46 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             ConfigurationInterface::DEBUG => 'yes' === $this->gateway->debug,
             ConfigurationInterface::ACCESS_TOKEN => $this->gateway->access_token,
             ConfigurationInterface::PAYEE_ID => $this->gateway->payee_id,
-            ConfigurationInterface::PAYEE_NAME => get_bloginfo('name'),
+            ConfigurationInterface::PAYEE_NAME => apply_filters(
+                'swedbank_pay_payee_name',
+                get_bloginfo('name'),
+                $this->gateway->id
+            ),
             ConfigurationInterface::MODE => 'yes' === $this->gateway->testmode,
-            ConfigurationInterface::AUTO_CAPTURE => 'yes' === $this->gateway->auto_capture,
-            ConfigurationInterface::SUBSITE => $this->gateway->subsite,
-            ConfigurationInterface::LANGUAGE => $this->gateway->culture,
+            ConfigurationInterface::AUTO_CAPTURE => apply_filters(
+                'swedbank_pay_autocapture',
+                'yes' === $this->gateway->auto_capture,
+                $this->gateway->id
+            ),
+            ConfigurationInterface::SUBSITE => apply_filters(
+                'swedbank_pay_subsite',
+                $this->gateway->subsite,
+                $this->gateway->id
+            ),
+            ConfigurationInterface::LANGUAGE => apply_filters(
+                'swedbank_pay_language',
+                $this->gateway->culture,
+                $this->gateway->id
+            ),
             ConfigurationInterface::CHECKOUT_METHOD => $this->gateway->method,
-            ConfigurationInterface::SAVE_CC => property_exists($this->gateway, 'save_cc') ?
-                'yes' === $this->gateway->save_cc : false,
+            ConfigurationInterface::SAVE_CC => property_exists($this->gateway, 'save_cc')
+                && 'yes' === $this->gateway->save_cc,
             ConfigurationInterface::TERMS_URL => property_exists($this->gateway, 'terms_url') ?
                 $this->gateway->terms_url : '',
             ConfigurationInterface::LOGO_URL => property_exists($this->gateway, 'logo_url') ?
                 $this->gateway->logo_url : '',
-            ConfigurationInterface::USE_PAYER_INFO => property_exists($this->gateway, 'use_payer_info') ?
-                'yes' === $this->gateway->use_payer_info : true,
-            ConfigurationInterface::USE_CARDHOLDER_INFO => property_exists($this->gateway, 'use_cardholder_info') ?
-                'yes' === $this->gateway->use_cardholder_info : true,
-            ConfigurationInterface::REJECT_CREDIT_CARDS => property_exists($this->gateway, 'reject_credit_cards') ?
-                'yes' === $this->gateway->reject_credit_cards : true,
-            ConfigurationInterface::REJECT_DEBIT_CARDS => property_exists($this->gateway, 'reject_debit_cards') ?
-                'yes' === $this->gateway->reject_debit_cards : true,
-            ConfigurationInterface::REJECT_CONSUMER_CARDS => property_exists($this->gateway, 'reject_consumer_cards') ?
-                'yes' === $this->gateway->reject_consumer_cards : true,
-            ConfigurationInterface::REJECT_CORPORATE_CARDS => property_exists($this->gateway, 'reject_corporate_cards') ?
-                'yes' === $this->gateway->reject_corporate_cards : true,
+            ConfigurationInterface::USE_PAYER_INFO => property_exists($this->gateway, 'use_payer_info')
+                && $this->gateway->use_payer_info,
+            ConfigurationInterface::USE_CARDHOLDER_INFO => property_exists($this->gateway, 'use_cardholder_info')
+                && $this->gateway->use_cardholder_info,
+            ConfigurationInterface::REJECT_CREDIT_CARDS => property_exists($this->gateway, 'reject_credit_cards')
+                && $this->gateway->reject_credit_cards,
+            ConfigurationInterface::REJECT_DEBIT_CARDS => property_exists($this->gateway, 'reject_debit_cards')
+                && $this->gateway->reject_debit_cards,
+            ConfigurationInterface::REJECT_CONSUMER_CARDS => property_exists($this->gateway, 'reject_consumer_cards')
+                && $this->gateway->reject_consumer_cards,
+            ConfigurationInterface::REJECT_CORPORATE_CARDS => property_exists($this->gateway, 'reject_corporate_cards')
+                && $this->gateway->reject_corporate_cards,
         );
         // phpcs:enable
     }
@@ -525,7 +540,10 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         $order = wc_get_order($orderId);
 
         return array(
-            PayeeInfoInterface::ORDER_REFERENCE => $order->get_id(),
+            PayeeInfoInterface::ORDER_REFERENCE => apply_filters(
+                'swedbank_pay_order_reference',
+                $order->get_id()
+            ),
         );
     }
 
@@ -842,6 +860,36 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 $order->payment_complete();
             }
         }
+    }
+
+    /**
+     * Process payment object.
+     *
+     * @param mixed $paymentObject
+     * @param mixed $orderId
+     *
+     * @return mixed
+     */
+    public function processPaymentObject($paymentObject, $orderId)
+    {
+        return apply_filters('swedbank_pay_payment_object', $paymentObject, $orderId);
+    }
+
+    /**
+     * Generate Payee Reference for Order.
+     *
+     * @param mixed $orderId
+     *
+     * @return string
+     */
+    public function generatePayeeReference($orderId)
+    {
+        $arr = range('a', 'z');
+        shuffle($arr);
+
+        $reference = $orderId . 'x' . substr(implode('', $arr), 0, 5);
+
+        return apply_filters('swedbank_pay_payee_reference', $reference, $orderId);
     }
 
     /**

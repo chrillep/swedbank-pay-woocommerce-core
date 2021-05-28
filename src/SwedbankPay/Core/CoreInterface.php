@@ -16,6 +16,7 @@ interface CoreInterface
     const OPERATION_PURCHASE = 'Purchase';
     const OPERATION_VERIFY = 'Verify';
     const OPERATION_RECUR = 'Recur';
+    const OPERATION_UPDATE_ORDER = 'UpdateOrder';
 
     /**
      * Can Capture.

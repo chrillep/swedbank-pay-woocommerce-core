@@ -8,6 +8,28 @@ use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
 use SwedbankPay\Core\Order;
 
+use SwedbankPay\Api\Client\Exception as ClientException;
+use SwedbankPay\Api\Service\Creditcard\Request\Purchase;
+use SwedbankPay\Api\Service\Creditcard\Request\Verify;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentPurchaseCreditcard;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentPurchaseObject;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentUrl;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentVerifyCreditcard;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentVerify;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentVerifyObject;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentPurchase;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentRecur;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentRecurObject;
+use SwedbankPay\Api\Service\Payment\Resource\Collection\PricesCollection;
+use SwedbankPay\Api\Service\Payment\Resource\Collection\Item\PriceItem;
+use SwedbankPay\Api\Service\Payment\Resource\Request\Metadata;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentPayeeInfo;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentPrefillInfo;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentRiskIndicator;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\PaymentCardholder;
+use SwedbankPay\Api\Service\Creditcard\Resource\Request\CardholderAddress;
+use SwedbankPay\Api\Service\Data\ResponseInterface as ResponseServiceInterface;
+
 trait Card
 {
     /**
@@ -28,114 +50,105 @@ trait Card
 
         $urls = $this->getPlatformUrls($orderId);
 
-        // Process payment
-        $params = [
-            'payment' => [
-                'initiatingSystemUserAgent' => $this->adapter->getInitiatingSystemUserAgent(),
-                'operation' => self::OPERATION_PURCHASE,
-                'intent' => $this->configuration->getAutoCapture() ?
-                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
-                'currency' => $order->getCurrency(),
-                'prices' => [
-                    [
-                        'type' => self::TYPE_CREDITCARD,
-                        'amount' => $order->getAmountInCents(),
-                        'vatAmount' => $order->getVatAmountInCents(),
-                    ]
-                ],
-                'description' => $order->getDescription(),
-                'payerReference' => $order->getPayerReference(),
-                'generatePaymentToken' => $generateToken,
-                'generateRecurrenceToken' => $generateToken,
-                'pageStripdown' => false,
-                'userAgent' => $order->getHttpUserAgent(),
-                'language' => $order->getLanguage(),
-                'urls' => [
-                    'hostUrls' => $urls->getHostUrls(),
-                    'completeUrl' => $urls->getCompleteUrl(),
-                    'cancelUrl' => $urls->getCancelUrl(),
-                    'callbackUrl' => $urls->getCallbackUrl(),
-                    'termsOfServiceUrl' => $urls->getTermsUrl(),
-                    'logoUrl' => $urls->getLogoUrl(),
-                ],
-                'payeeInfo' => $this->getPayeeInfo($orderId)->toArray(),
-                'riskIndicator' => $this->getRiskIndicator($orderId)->toArray(),
-                'creditCard' => [
-                    'rejectCreditCards' => $this->configuration->getRejectCreditCards(),
-                    'rejectDebitCards' => $this->configuration->getRejectDebitCards(),
-                    'rejectConsumerCards' => $this->configuration->getRejectConsumerCards(),
-                    'rejectCorporateCards' => $this->configuration->getRejectCorporateCards()
-                ],
-                'prefillInfo' => [
-                    'msisdn' => $order->getBillingPhone()
-                ],
-                'metadata' => [
-                    'order_id' => $order->getOrderId()
-                ],
-            ]
-        ];
+        $url = new PaymentUrl();
+        $url->setCompleteUrl($urls->getCompleteUrl())
+            ->setCancelUrl($urls->getCancelUrl())
+            ->setCallbackUrl($urls->getCallbackUrl())
+            ->setLogoUrl($urls->getLogoUrl())
+            ->setTermsOfService($urls->getTermsUrl())
+            ->setHostUrls($urls->getHostUrls());
 
         if ($this->configuration->getData(ConfigurationInterface::CHECKOUT_METHOD) ===
             ConfigurationInterface::METHOD_SEAMLESS
         ) {
-            $params['payment']['urls']['paymentUrl'] = $urls->getPaymentUrl();
+            $url->setPaymentUrl($urls->getPaymentUrl());
         }
 
-        if ($this->configuration->getUseCardholderInfo()) {
-            $params['payment']['cardholder'] = [
-                'firstName'       => $order->getBillingFirstName(),
-                'lastName'        => $order->getBillingLastName(),
-                'email'           => $order->getBillingEmail(),
-                'msisdn'          => $order->getBillingPhone(),
-                'homePhoneNumber' => $order->getBillingPhone(),
-                'workPhoneNumber' => $order->getBillingPhone(),
-            ];
+        $price = new PriceItem();
+        $price->setType(self::TYPE_CREDITCARD)
+              ->setAmount($order->getAmountInCents())
+              ->setVatAmount($order->getVatAmountInCents());
 
-            if ($this->configuration->getUsePayerInfo()) {
-                $params['payment']['cardholder']['billingAddress'] = [
-                    'firstName'     => $order->getBillingFirstName(),
-                    'lastName'      => $order->getBillingLastName(),
-                    'email'         => $order->getBillingEmail(),
-                    'msisdn'        => $order->getBillingPhone(),
-                    'streetAddress' => implode(
-                        ', ',
-                        [$order->getBillingAddress1(), $order->getBillingAddress2()]
-                    ),
-                    'coAddress'     => '',
-                    'city'          => $order->getBillingCity(),
-                    'zipCode'       => $order->getBillingPostcode(),
-                    'countryCode'   => $order->getBillingCountryCode()
-                ];
+        $prices = new PricesCollection();
+        $prices->addItem($price);
 
-                // Add shipping address if needs
-                if ($order->needsShipping()) {
-                    $params['payment']['cardholder']['shippingAddress'] = [
-                        'firstName'     => $order->getShippingFirstName(),
-                        'lastName'      => $order->getShippingLastName(),
-                        'email'         => $order->getShippingEmail(),
-                        'msisdn'        => $order->getShippingPhone(),
-                        'streetAddress' => implode(
-                            ', ',
-                            [$order->getShippingAddress1(), $order->getShippingAddress2()]
-                        ),
-                        'coAddress'     => '',
-                        'city'          => $order->getShippingCity(),
-                        'zipCode'       => $order->getShippingPostcode(),
-                        'countryCode'   => $order->getShippingCountryCode()
-                    ];
-                }
-            }
-        }
+        $metadata = new Metadata();
+        $metadata->setData('order_id', $order->getOrderId());
 
+        $payment = new PaymentPurchase();
+        $payment
+            ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
+            ->setOperation(self::OPERATION_PURCHASE)
+            ->setIntent(
+                $this->configuration->getAutoCapture() ?
+                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION
+            )
+            ->setCurrency($order->getCurrency())
+            ->setPrices($prices)
+            ->setDescription($order->getDescription())
+            ->setPayerReference($order->getPayerReference())
+            ->setGeneratePaymentToken($generateToken)
+            ->setGenerateRecurrenceToken($generateToken)
+            ->setUserAgent($order->getHttpUserAgent())
+            ->setLanguage($order->getLanguage())
+            ->setUrls($url)
+            ->setPayeeInfo(
+                new PaymentPayeeInfo($this->getPayeeInfo($orderId)->toArray())
+            )
+            ->setRiskIndicator(
+                new PaymentRiskIndicator($this->getRiskIndicator($orderId)->toArray())
+            )
+            ->setPrefillInfo(
+                (new PaymentPrefillInfo())
+                    ->setMsisdn($order->getBillingPhone())
+            )
+            ->setMetadata($metadata);
+
+        // Add payment token
         if ($paymentToken) {
-            $params['payment']['paymentToken'] = $paymentToken;
-            $params['payment']['generatePaymentToken'] = false;
-            $params['payment']['generateRecurrenceToken'] = false;
+            $payment
+                ->setPaymentToken($paymentToken)
+                ->setGeneratePaymentToken(false)
+                ->setGenerateRecurrenceToken(false);
         }
+
+        // Add Cardholder info
+        $payment->setCardholder($this->getCardHolderInformation($order));
+
+        $paymentObject = new PaymentPurchaseObject();
+        $paymentObject->setPayment($payment);
+
+        // Add Credit Card
+        $creditCard = new PaymentPurchaseCreditcard();
+        $creditCard
+            ->setRejectCreditCards($this->configuration->getRejectCreditCards())
+            ->setRejectDebitCards($this->configuration->getRejectDebitCards())
+            ->setRejectConsumerCards($this->configuration->getRejectConsumerCards())
+            ->setRejectCorporateCards($this->configuration->getRejectCorporateCards());
+        $paymentObject->setCreditCard($creditCard);
+
+        // Process payment object
+        $paymentObject = $this->adapter->processPaymentObject($paymentObject, $orderId);
+
+        $purchaseRequest = new Purchase($paymentObject);
+        $purchaseRequest->setClient($this->client);
 
         try {
-            $result = $this->request('POST', self::CARD_PAYMENTS_URL, $params);
-        } catch (\Exception $e) {
+            /** @var ResponseServiceInterface $responseService */
+            $responseService = $purchaseRequest->send();
+
+            $this->log(
+                LogLevel::DEBUG,
+                $purchaseRequest->getClient()->getDebugInfo()
+            );
+
+            return new Response($responseService->getResponseData());
+        } catch (ClientException $e) {
+            $this->log(
+                LogLevel::DEBUG,
+                $purchaseRequest->getClient()->getDebugInfo()
+            );
+
             $this->log(
                 LogLevel::DEBUG,
                 sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
@@ -143,8 +156,6 @@ trait Card
 
             throw new Exception($e->getMessage());
         }
-
-        return $result;
     }
 
     /**
@@ -162,45 +173,82 @@ trait Card
 
         $urls = $this->getPlatformUrls($orderId);
 
-        $params = [
-            'payment' => [
-                'operation' => self::OPERATION_VERIFY,
-                'currency' => $order->getCurrency(),
-                'description' => 'Verification of Credit Card',
-                'payerReference' => $order->getPayerReference(),
-                'generatePaymentToken' => true,
-                'generateRecurrenceToken' => true,
-                'pageStripdown' => false,
-                'userAgent' => $order->getHttpUserAgent(),
-                'language' => $order->getLanguage(),
-                'urls' => [
-                    'completeUrl' => $urls->getCompleteUrl(),
-                    'cancelUrl' => $urls->getCancelUrl(),
-                    'callbackUrl' => $urls->getCallbackUrl(),
-                    'termsOfServiceUrl' => $urls->getTermsUrl(),
-                    'logoUrl' => $urls->getLogoUrl(),
-                ],
-                'payeeInfo' => $this->getPayeeInfo($orderId)->toArray(),
-                'riskIndicator' => $this->getRiskIndicator($orderId)->toArray(),
-                'creditCard' => [
-                    'rejectCreditCards' => $this->configuration->getRejectCreditCards(),
-                    'rejectDebitCards' => $this->configuration->getRejectDebitCards(),
-                    'rejectConsumerCards' => $this->configuration->getRejectConsumerCards(),
-                    'rejectCorporateCards' => $this->configuration->getRejectCorporateCards()
-                ],
-                'metadata' => [
-                    'order_id' => $order->getOrderId()
-                ],
-            ]
-        ];
+        $url = new PaymentUrl();
+        $url->setCompleteUrl($urls->getCompleteUrl())
+            ->setCancelUrl($urls->getCancelUrl())
+            ->setCallbackUrl($urls->getCallbackUrl())
+            ->setLogoUrl($urls->getLogoUrl())
+            ->setTermsOfService($urls->getTermsUrl())
+            ->setHostUrls($urls->getHostUrls());
 
-        if ($this->configuration->getUseCardholderInfo()) {
-            $params['payment']['cardholder'] = $order->getCardHolderInformation();
+        if ($this->configuration->getData(ConfigurationInterface::CHECKOUT_METHOD) ===
+            ConfigurationInterface::METHOD_SEAMLESS
+        ) {
+            $url->setPaymentUrl($urls->getPaymentUrl());
         }
 
+        $metadata = new Metadata();
+        $metadata->setData('order_id', $order->getOrderId());
+
+        $payment = new PaymentVerify();
+        $payment
+            ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
+            ->setOperation(self::OPERATION_VERIFY)
+            ->setIntent(
+                $this->configuration->getAutoCapture() ?
+                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION
+            )
+            ->setCurrency($order->getCurrency())
+            ->setDescription('Verification of Credit Card')
+            ->setPayerReference($order->getPayerReference())
+            ->setGeneratePaymentToken(true)
+            ->setGenerateRecurrenceToken(true)
+            ->setUserAgent($order->getHttpUserAgent())
+            ->setLanguage($order->getLanguage())
+            ->setUrls($url)
+            ->setPayeeInfo(
+                new PaymentPayeeInfo($this->getPayeeInfo($orderId)->toArray())
+            )
+            ->setPrefillInfo(
+                (new PaymentPrefillInfo())->setMsisdn($order->getBillingPhone())
+            )
+            ->setMetadata($metadata);
+
+        $paymentObject = new PaymentVerifyObject();
+        $paymentObject->setPayment($payment);
+
+        // Add Credit Card
+        $creditCard = new PaymentVerifyCreditcard();
+        $creditCard
+            ->setRejectCreditCards($this->configuration->getRejectCreditCards())
+            ->setRejectDebitCards($this->configuration->getRejectDebitCards())
+            ->setRejectConsumerCards($this->configuration->getRejectConsumerCards())
+            ->setRejectCorporateCards($this->configuration->getRejectCorporateCards());
+
+        $paymentObject->setCreditCard($creditCard);
+
+        // Process payment object
+        $paymentObject = $this->adapter->processPaymentObject($paymentObject, $orderId);
+
+        $verifyRequest = new Verify($paymentObject);
+        $verifyRequest->setClient($this->client);
+
         try {
-            $result = $this->request('POST', self::CARD_PAYMENTS_URL, $params);
-        } catch (\Exception $e) {
+            /** @var ResponseServiceInterface $responseService */
+            $responseService = $verifyRequest->send();
+
+            $this->log(
+                LogLevel::DEBUG,
+                $verifyRequest->getClient()->getDebugInfo()
+            );
+
+            return new Response($responseService->getResponseData());
+        } catch (ClientException $e) {
+            $this->log(
+                LogLevel::DEBUG,
+                $verifyRequest->getClient()->getDebugInfo()
+            );
+
             $this->log(
                 LogLevel::DEBUG,
                 sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
@@ -208,8 +256,6 @@ trait Card
 
             throw new Exception($e->getMessage());
         }
-
-        return $result;
     }
 
     /**
@@ -228,48 +274,80 @@ trait Card
         /** @var Order $order */
         $order = $this->getOrder($orderId);
 
-        $params = [
-            'payment' => [
-                'operation' => self::OPERATION_RECUR,
-                'intent' => $this->configuration->getAutoCapture() ?
-                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
-                'currency' => $order->getCurrency(),
-                'amount' => $order->getAmountInCents(),
-                'vatAmount' => $order->getVatAmountInCents(),
-                'description' => $order->getDescription(),
-                'payerReference' => $order->getPayerReference(),
-                'userAgent' => $order->getHttpUserAgent(),
-                'language' => $order->getLanguage(),
-                'urls' => [
-                    'callbackUrl' => $this->getPlatformUrls($orderId)->getCallbackUrl()
-                ],
-                'payeeInfo' => $this->getPayeeInfo($orderId)->toArray(),
-                'riskIndicator' => $this->getRiskIndicator($orderId)->toArray(),
-                'metadata' => [
-                    'order_id' => $orderId
-                ],
-            ]
-        ];
+        $urls = $this->getPlatformUrls($orderId);
+
+        $url = new PaymentUrl();
+        $url->setCallbackUrl($urls->getCallbackUrl());
+
+        $metadata = new Metadata();
+        $metadata->setData('order_id', $order->getOrderId());
+
+        $payment = new PaymentRecur();
+        $payment
+            ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
+            ->setOperation(self::OPERATION_RECUR)
+            ->setIntent(
+                $this->configuration->getAutoCapture() ?
+                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION
+                )
+            ->setCurrency($order->getCurrency())
+            ->setAmount($order->getAmountInCents())
+            ->setVatAmount($order->getVatAmountInCents())
+            ->setDescription($order->getDescription())
+            ->setPayerReference($order->getPayerReference())
+            ->setUserAgent($order->getHttpUserAgent())
+            ->setLanguage($order->getLanguage())
+            ->setUrls($url)
+            ->setPayeeInfo(
+                new PaymentPayeeInfo($this->getPayeeInfo($orderId)->toArray())
+            )
+            ->setRiskIndicator(
+                new PaymentRiskIndicator($this->getRiskIndicator($orderId)->toArray())
+            )
+            ->setPrefillInfo(
+                (new PaymentPrefillInfo())->setMsisdn($order->getBillingPhone())
+            )
+            ->setMetadata($metadata);
 
         // Use Recurrence Token if it's exist
         if (!empty($recurrenceToken)) {
-            $params['payment']['recurrenceToken'] = $recurrenceToken;
+            $payment->setRecurrenceToken($recurrenceToken);
         } else {
-            $params['payment']['paymentToken'] = $paymentToken;
+            $payment->setPaymentToken($paymentToken);
         }
 
+        $paymentObject = new PaymentRecurObject();
+        $paymentObject->setPayment($payment);
+
+        // Process payment object
+        $paymentObject = $this->adapter->processPaymentObject($paymentObject, $orderId);
+
+        $purchaseRequest = new Purchase($paymentObject);
+        $purchaseRequest->setClient($this->client);
+
         try {
-            $result = $this->request('POST', self::CARD_PAYMENTS_URL, $params);
-        } catch (\Exception $e) {
+            /** @var ResponseServiceInterface $responseService */
+            $responseService = $purchaseRequest->send();
+
+            $this->log(
+                LogLevel::DEBUG,
+                $purchaseRequest->getClient()->getDebugInfo()
+            );
+
+            return new Response($responseService->getResponseData());
+        } catch (ClientException $e) {
+            $this->log(
+                LogLevel::DEBUG,
+                $purchaseRequest->getClient()->getDebugInfo()
+            );
+
             $this->log(
                 LogLevel::DEBUG,
                 sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
             );
 
-            throw $e;
+            throw new Exception($e->getMessage());
         }
-
-        return $result;
     }
 
     /**
@@ -288,47 +366,144 @@ trait Card
         /** @var Order $order */
         $order = $this->getOrder($orderId);
 
-        $params = [
-            'payment' => [
-                'operation' => self::OPERATION_UNSCHEDULED_PURCHASE,
-                'intent' => $this->configuration->getAutoCapture() ?
-                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION,
-                'currency' => $order->getCurrency(),
-                'amount' => $order->getAmountInCents(),
-                'vatAmount' => $order->getVatAmountInCents(),
-                'description' => $order->getDescription(),
-                'payerReference' => $order->getPayerReference(),
-                'userAgent' => $order->getHttpUserAgent(),
-                'language' => $order->getLanguage(),
-                'urls' => [
-                    'callbackUrl' => $this->getPlatformUrls($orderId)->getCallbackUrl()
-                ],
-                'payeeInfo' => $this->getPayeeInfo($orderId)->toArray(),
-                'riskIndicator' => $this->getRiskIndicator($orderId)->toArray(),
-                'metadata' => [
-                    'order_id' => $orderId
-                ],
-            ]
-        ];
+        $urls = $this->getPlatformUrls($orderId);
+
+        $url = new PaymentUrl();
+        $url->setCallbackUrl($urls->getCallbackUrl());
+
+        $metadata = new Metadata();
+        $metadata->setData('order_id', $order->getOrderId());
+
+        $payment = new PaymentRecur();
+        $payment
+            ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
+            ->setOperation(self::OPERATION_UNSCHEDULED_PURCHASE)
+            ->setIntent(
+                $this->configuration->getAutoCapture() ?
+                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION
+            )
+            ->setCurrency($order->getCurrency())
+            ->setAmount($order->getAmountInCents())
+            ->setVatAmount($order->getVatAmountInCents())
+            ->setDescription($order->getDescription())
+            ->setPayerReference($order->getPayerReference())
+            ->setUserAgent($order->getHttpUserAgent())
+            ->setLanguage($order->getLanguage())
+            ->setUrls($url)
+            ->setPayeeInfo(
+                new PaymentPayeeInfo($this->getPayeeInfo($orderId)->toArray())
+            )
+            ->setRiskIndicator(
+                new PaymentRiskIndicator($this->getRiskIndicator($orderId)->toArray())
+            )
+            ->setPrefillInfo(
+                (new PaymentPrefillInfo())->setMsisdn($order->getBillingPhone())
+            )
+            ->setMetadata($metadata);
 
         // Use Recurrence Token if it's exist
         if (!empty($recurrenceToken)) {
-            $params['payment']['recurrenceToken'] = $recurrenceToken;
+            $payment->setRecurrenceToken($recurrenceToken);
         } else {
-            $params['payment']['paymentToken'] = $paymentToken;
+            $payment->setPaymentToken($paymentToken);
         }
 
+        $paymentObject = new PaymentRecurObject();
+        $paymentObject->setPayment($payment);
+
+        // Process payment object
+        $paymentObject = $this->adapter->processPaymentObject($paymentObject, $orderId);
+
+        $purchaseRequest = new Purchase($paymentObject);
+        $purchaseRequest->setClient($this->client);
+
         try {
-            $result = $this->request('POST', self::CARD_PAYMENTS_URL, $params);
-        } catch (\Exception $e) {
+            /** @var ResponseServiceInterface $responseService */
+            $responseService = $purchaseRequest->send();
+
+            $this->log(
+                LogLevel::DEBUG,
+                $purchaseRequest->getClient()->getDebugInfo()
+            );
+
+            return new Response($responseService->getResponseData());
+        } catch (ClientException $e) {
+            $this->log(
+                LogLevel::DEBUG,
+                $purchaseRequest->getClient()->getDebugInfo()
+            );
+
             $this->log(
                 LogLevel::DEBUG,
                 sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
             );
 
-            throw $e;
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    /**
+     * @param Order $order
+     *
+     * @return PaymentCardholder|null
+     */
+    private function getCardHolderInformation(Order $order)
+    {
+        // Add Cardholder info
+        if ($this->configuration->getUseCardholderInfo()) {
+            // Add basic cardholder information
+            $cardHolder = new PaymentCardholder();
+            $cardHolder
+                ->setFirstName($order->getBillingFirstName())
+                ->setLastName($order->getBillingLastName())
+                ->setEmail($order->getBillingEmail())
+                ->setMsisdn($order->getBillingPhone())
+                ->setHomePhoneNumber($order->getBillingPhone())
+                ->setWorkPhoneNumber($order->getBillingPhone());
+
+            if ($this->configuration->getUsePayerInfo()) {
+                // Add billing info
+                $cardHolder->setBillingAddress(
+                    (new CardholderAddress)
+                        ->setFirstName($order->getBillingFirstName())
+                        ->setLastName($order->getBillingLastName())
+                        ->setEmail($order->getBillingEmail())
+                        ->setMsisdn($order->getBillingPhone())
+                        ->setStreetAddress(implode(
+                            ', ',
+                            [$order->getBillingAddress1(), $order->getBillingAddress2()]
+                        ))
+                        ->setCoAddress('')
+                        ->setCity($order->getBillingCity())
+                        ->setZipCode($order->getBillingPostcode())
+                        ->setCountryCode($order->getBillingCountryCode())
+                );
+
+                // Add shipping address if needs
+                if ($order->needsShipping()) {
+                    $cardHolder->setShippingAddress(
+                        (new CardholderAddress)
+                            ->setFirstName($order->getShippingFirstName())
+                            ->setLastName($order->getShippingLastName())
+                            ->setEmail($order->getShippingEmail())
+                            ->setMsisdn($order->getShippingPhone())
+                            ->setStreetAddress(implode(
+                                ', ',
+                                [$order->getShippingAddress1(), $order->getShippingAddress2()]
+                            ))
+                            ->setCoAddress('')
+                            ->setCity($order->getShippingCity())
+                            ->setZipCode($order->getShippingPostcode())
+                            ->setCountryCode($order->getShippingCountryCode())
+                    );
+                }
+            }
+
+            // @todo Add $cardHolder->setAccountInfo()
+
+            return $cardHolder;
         }
 
-        return $result;
+        return null;
     }
 }
