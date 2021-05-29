@@ -37,7 +37,10 @@ jobs:
           PAYEE_ID: ${{ secrets.PAYEE_ID }}
           ACCESS_TOKEN_MOBILEPAY: ${{ secrets.ACCESS_TOKEN_MOBILEPAY }}
           PAYEE_ID_MOBILEPAY: ${{ secrets.PAYEE_ID_MOBILEPAY }}
-        run: composer install && ./vendor/bin/phpunit --configuration=./tests/phpunit.xml --bootstrap=./tests/bootstrap.php ./tests/ --coverage-clover=coverage.xml
+        run: |
+          sed -i -e "s/~4.0/dev-master/g" ./composer.json
+          composer install
+          ./vendor/bin/phpunit --configuration=./tests/phpunit.xml --bootstrap=./tests/bootstrap.php ./tests/ --coverage-clover=coverage.xml
 
       - name: Upload code coverage report to Codecov
         env:
