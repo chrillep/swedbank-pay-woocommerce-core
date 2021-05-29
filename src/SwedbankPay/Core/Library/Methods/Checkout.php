@@ -9,6 +9,7 @@ use SwedbankPay\Core\Log\LogLevel;
 use SwedbankPay\Core\Order;
 use SwedbankPay\Core\OrderInterface;
 use SwedbankPay\Core\Api\TransactionInterface;
+use SwedbankPay\Core\OrderItemInterface;
 
 use SwedbankPay\Api\Client\Exception as ClientException;
 use SwedbankPay\Api\Service\Paymentorder\Resource\Request\Paymentorder;
@@ -79,21 +80,21 @@ trait Checkout
         $items = $order->getItems();
         $orderItems = new OrderItemsCollection();
         foreach ($items as $item) {
-            /** @var OrderItem $item */
+            /** @var OrderItemInterface $item */
 
             $orderItem = new OrderItem();
             $orderItem
                 ->setReference($item->getReference())
                 ->setName($item->getName())
                 ->setType($item->getType())
-                ->setItemClass($item->getItemClass())
+                ->setItemClass($item->getClass())
                 ->setItemUrl($item->getItemUrl())
                 ->setImageUrl($item->getImageUrl())
                 ->setDescription($item->getDescription())
-                ->setDiscountDescription($item->getDiscountDescription())
+                //->setDiscountDescription($item->getDiscountDescription())
                 ->setQuantity($item->getQty())
                 ->setUnitPrice($item->getUnitPrice())
-                ->setQuantityUnit($item->getQuantityUnit())
+                ->setQuantityUnit($item->getQtyUnit())
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
                 ->setVatAmount($item->getVatAmount());
@@ -216,6 +217,14 @@ trait Checkout
         // Add Risk Indicator
         $riskIndicator = new PaymentorderRiskIndicator($this->getRiskIndicator($orderId)->toArray());
 
+        $items = new PaymentorderItemsCollection();
+        $items->addItem(['creditCard' => [
+            'rejectCreditCards' => $this->configuration->getRejectCreditCards(),
+            'rejectDebitCards' => $this->configuration->getRejectDebitCards(),
+            'rejectConsumerCards' => $this->configuration->getRejectConsumerCards(),
+            'rejectCorporateCards' => $this->configuration->getRejectCorporateCards()
+        ]]);
+
         $paymentOrder = new Paymentorder();
         $paymentOrder
             ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
@@ -229,14 +238,7 @@ trait Checkout
             ->setPayeeInfo($payeeInfo)
             ->setMetadata($metadata)
             ->setRiskIndicator($riskIndicator)
-            ->setItems([
-                'creditCard' => [
-                    'rejectCreditCards' => $this->configuration->getRejectCreditCards(),
-                    'rejectDebitCards' => $this->configuration->getRejectDebitCards(),
-                    'rejectConsumerCards' => $this->configuration->getRejectConsumerCards(),
-                    'rejectCorporateCards' => $this->configuration->getRejectCorporateCards()
-                ]
-            ]);
+            ->setItems($items);
 
         $paymentOrderObject = new PaymentorderObject();
         $paymentOrderObject->setPaymentorder($paymentOrder);
@@ -312,21 +314,21 @@ trait Checkout
         $items = $order->getItems();
         $orderItems = new OrderItemsCollection();
         foreach ($items as $item) {
-            /** @var OrderItem $item */
+            /** @var OrderItemInterface $item */
 
             $orderItem = new OrderItem();
             $orderItem
                 ->setReference($item->getReference())
                 ->setName($item->getName())
                 ->setType($item->getType())
-                ->setItemClass($item->getItemClass())
+                ->setItemClass($item->getClass())
                 ->setItemUrl($item->getItemUrl())
                 ->setImageUrl($item->getImageUrl())
                 ->setDescription($item->getDescription())
-                ->setDiscountDescription($item->getDiscountDescription())
+                //->setDiscountDescription($item->getDiscountDescription())
                 ->setQuantity($item->getQty())
                 ->setUnitPrice($item->getUnitPrice())
-                ->setQuantityUnit($item->getQuantityUnit())
+                ->setQuantityUnit($item->getQtyUnit())
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
                 ->setVatAmount($item->getVatAmount());
@@ -498,20 +500,21 @@ trait Checkout
         // Build items collection
         $orderItems = new OrderItemsCollection();
         foreach ($items as $item) {
-            /** @var OrderItem $item */
+            /** @var OrderItemInterface $item */
+
             $orderItem = new OrderItem();
             $orderItem
                 ->setReference($item->getReference())
                 ->setName($item->getName())
                 ->setType($item->getType())
-                ->setItemClass($item->getItemClass())
+                ->setItemClass($item->getClass())
                 ->setItemUrl($item->getItemUrl())
                 ->setImageUrl($item->getImageUrl())
                 ->setDescription($item->getDescription())
-                ->setDiscountDescription($item->getDiscountDescription())
+                //->setDiscountDescription($item->getDiscountDescription())
                 ->setQuantity($item->getQty())
                 ->setUnitPrice($item->getUnitPrice())
-                ->setQuantityUnit($item->getQuantityUnit())
+                ->setQuantityUnit($item->getQtyUnit())
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
                 ->setVatAmount($item->getVatAmount());
@@ -725,20 +728,21 @@ trait Checkout
             $amount += $item->getAmount();
             $vatAmount += $item->getVatAmount();
 
-            /** @var OrderItem $item */
+            /** @var OrderItemInterface $item */
+
             $orderItem = new OrderItem();
             $orderItem
                 ->setReference($item->getReference())
                 ->setName($item->getName())
                 ->setType($item->getType())
-                ->setItemClass($item->getItemClass())
+                ->setItemClass($item->getClass())
                 ->setItemUrl($item->getItemUrl())
                 ->setImageUrl($item->getImageUrl())
                 ->setDescription($item->getDescription())
-                ->setDiscountDescription($item->getDiscountDescription())
+                //->setDiscountDescription($item->getDiscountDescription())
                 ->setQuantity($item->getQty())
                 ->setUnitPrice($item->getUnitPrice())
-                ->setQuantityUnit($item->getQuantityUnit())
+                ->setQuantityUnit($item->getQtyUnit())
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
                 ->setVatAmount($item->getVatAmount());
