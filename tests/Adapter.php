@@ -294,55 +294,83 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
         // @todo
     }
 
-	/**
-	 * Get Order Status.
-	 *
-	 * @param $orderId
-	 *
-	 * @return string
-	 * @throws Exception
-	 *@see wc_get_order_statuses()
-	 */
-	public function getOrderStatus($orderId)
-	{
-		return OrderInterface::STATUS_AUTHORIZED;
-	}
+    /**
+     * Get Order Status.
+     *
+     * @param $orderId
+     *
+     * @return string
+     * @throws Exception
+     *@see wc_get_order_statuses()
+     */
+    public function getOrderStatus($orderId)
+    {
+        return OrderInterface::STATUS_AUTHORIZED;
+    }
 
-	/**
-	 * Set Payment Id to Order.
-	 *
-	 * @param mixed $orderId
-	 * @param string $paymentId
-	 *
-	 * @return void
-	 */
-	public function setPaymentId($orderId, $paymentId)
-	{
-		// @todo
-	}
+    /**
+     * Set Payment Id to Order.
+     *
+     * @param mixed $orderId
+     * @param string $paymentId
+     *
+     * @return void
+     */
+    public function setPaymentId($orderId, $paymentId)
+    {
+        // @todo
+    }
 
-	/**
-	 * Set Payment Order Id to Order.
-	 *
-	 * @param mixed $orderId
-	 * @param string $paymentOrderId
-	 *
-	 * @return void
-	 */
-	public function setPaymentOrderId($orderId, $paymentOrderId)
-	{
-		// @todo
-	}
+    /**
+     * Set Payment Order Id to Order.
+     *
+     * @param mixed $orderId
+     * @param string $paymentOrderId
+     *
+     * @return void
+     */
+    public function setPaymentOrderId($orderId, $paymentOrderId)
+    {
+        // @todo
+    }
 
-	/**
-	 * Get Payment Method.
-	 *
-	 * @param mixed $orderId
-	 *
-	 * @return string|null Returns method or null if not exists
-	 */
-	public function getPaymentMethod($orderId)
-	{
-		return PaymentAdapterInterface::METHOD_CC;
-	}
+    /**
+     * Get Payment Method.
+     *
+     * @param mixed $orderId
+     *
+     * @return string|null Returns method or null if not exists
+     */
+    public function getPaymentMethod($orderId)
+    {
+        return PaymentAdapterInterface::METHOD_CC;
+    }
+
+    /**
+     * Process payment object.
+     *
+     * @param mixed $paymentObject
+     * @param mixed $orderId
+     *
+     * @return mixed
+     */
+    public function processPaymentObject($paymentObject, $orderId)
+    {
+        return $paymentObject;
+    }
+
+    /**
+     * Generate Payee Reference for Order.
+     *
+     * @param mixed $orderId
+     *
+     * @return string
+     */
+    public function generatePayeeReference($orderId)
+    {
+        $arr = range('a', 'z');
+        shuffle($arr);
+
+        return $orderId . 'x' . substr(implode('', $arr), 0, 5);
+    }
 }
