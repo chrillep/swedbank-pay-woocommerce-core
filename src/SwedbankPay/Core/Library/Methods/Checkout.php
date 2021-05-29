@@ -2,6 +2,7 @@
 
 namespace SwedbankPay\Core\Library\Methods;
 
+use SwedbankPay\Api\Service\Paymentorder\Resource\Collection\PaymentorderItemsCollection;
 use SwedbankPay\Core\Api\Response;
 use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
@@ -28,6 +29,7 @@ use SwedbankPay\Api\Service\Paymentorder\Transaction\Resource\Request\Transactio
 use SwedbankPay\Api\Service\Paymentorder\Transaction\Request\TransactionCapture;
 use SwedbankPay\Api\Service\Paymentorder\Transaction\Request\TransactionCancel;
 use SwedbankPay\Api\Service\Paymentorder\Transaction\Request\TransactionReversal;
+use SwedbankPay\Framework\DataObjectCollectionItem;
 
 trait Checkout
 {
@@ -66,21 +68,6 @@ trait Checkout
 
         $payeeInfo = new PaymentorderPayeeInfo($this->getPayeeInfo($orderId)->toArray());
 
-        $payer = new PaymentorderPayer();
-
-        // Add consumerProfileRef if exists
-        if (!empty($consumerProfileRef)) {
-            $payer->setConsumerProfileRef($consumerProfileRef);
-        }
-
-        // Add payer info
-        if ($this->configuration->getUsePayerInfo()) {
-            $payer->setEmail($order->getBillingEmail())
-                  ->setMsisdn($order->getBillingPhone())
-                  ->setWorkPhoneNumber($order->getBillingPhone())
-                  ->setHomePhoneNumber($order->getBillingPhone());
-        }
-
         // Add metadata
         $metadata = new PaymentorderMetadata();
         $metadata->setData('order_id', $order->getOrderId());
@@ -114,6 +101,14 @@ trait Checkout
             $orderItems->addItem($orderItem);
         }
 
+        $items = new PaymentorderItemsCollection();
+        $items->addItem(['creditCard' => [
+            'rejectCreditCards' => $this->configuration->getRejectCreditCards(),
+            'rejectDebitCards' => $this->configuration->getRejectDebitCards(),
+            'rejectConsumerCards' => $this->configuration->getRejectConsumerCards(),
+            'rejectCorporateCards' => $this->configuration->getRejectCorporateCards()
+        ]]);
+
         $paymentOrder = new Paymentorder();
         $paymentOrder
             ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
@@ -131,15 +126,28 @@ trait Checkout
             ->setMetadata($metadata)
             ->setOrderItems($orderItems)
             ->setRiskIndicator($riskIndicator)
-            ->setItems([
-                'creditCard' => [
-                    'rejectCreditCards' => $this->configuration->getRejectCreditCards(),
-                    'rejectDebitCards' => $this->configuration->getRejectDebitCards(),
-                    'rejectConsumerCards' => $this->configuration->getRejectConsumerCards(),
-                    'rejectCorporateCards' => $this->configuration->getRejectCorporateCards()
-                ]
-            ])
-            ->setPayer($payer);
+            ->setItems($items);
+
+        // Add payer info
+        if ($this->configuration->getUsePayerInfo()) {
+            $payer = new PaymentorderPayer();
+            $payer->setEmail($order->getBillingEmail())
+                  ->setMsisdn($order->getBillingPhone())
+                  ->setWorkPhoneNumber($order->getBillingPhone())
+                  ->setHomePhoneNumber($order->getBillingPhone());
+
+            // Add consumerProfileRef if exists
+            if (!empty($consumerProfileRef)) {
+                $payer->setConsumerProfileRef($consumerProfileRef);
+            }
+
+            $paymentOrder->setPayer($payer);
+        } elseif (!empty($consumerProfileRef)) {
+            $payer = new PaymentorderPayer();
+            $payer->setConsumerProfileRef($consumerProfileRef);
+
+            $paymentOrder->setPayer($payer);
+        }
 
         $paymentOrderObject = new PaymentorderObject();
         $paymentOrderObject->setPaymentorder($paymentOrder);
