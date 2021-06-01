@@ -181,6 +181,7 @@ class Order extends Data implements OrderInterface
     /**
      * Get card holder's information.
      *
+     * @deprecated
      * @return array
      */
     public function getCardHolderInformation()

@@ -186,4 +186,23 @@ interface PaymentAdapterInterface
         $expiryDate,
         $orderId = null
     );
+
+    /**
+     * Process payment object.
+     *
+     * @param mixed $paymentObject
+     * @param mixed $orderId
+     *
+     * @return mixed
+     */
+    public function processPaymentObject($paymentObject, $orderId);
+
+    /**
+     * Generate Payee Reference for Order.
+     *
+     * @param mixed $orderId
+     *
+     * @return string
+     */
+    public function generatePayeeReference($orderId);
 }

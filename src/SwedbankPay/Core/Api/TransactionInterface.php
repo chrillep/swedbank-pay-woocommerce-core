@@ -36,6 +36,8 @@ interface TransactionInterface
     const STATE_PENDING = 'Pending';
     const STATE_COMPLETED = 'Completed';
     const STATE_FAILED = 'Failed';
+    const STATE_INITIALIZED = 'Initialized';
+    const STATE_AWAITING_ACTIVITY = 'AwaitingActivity';
 
     const VAT_AMOUNT = 'vatAmount';
     const PAYEE_REFERENCE = 'payeeReference';

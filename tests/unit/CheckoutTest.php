@@ -9,13 +9,13 @@ class CheckoutTest extends TestCase
         // Test initialization
         $result = $this->core->initiatePaymentOrderPurchase(1, null);
         $this->assertInstanceOf(Response::class, $result);
-        $this->assertArrayHasKey('paymentOrder', $result);
+        $this->assertArrayHasKey('payment_order', $result);
         $this->assertArrayHasKey('operations', $result);
-        $this->assertIsArray($result['paymentOrder']);
-        $this->assertArrayHasKey('id', $result['paymentOrder']);
-        $this->assertArrayHasKey('operation', $result['paymentOrder']);
-        $this->assertArrayHasKey('state', $result['paymentOrder']);
-        $this->assertArrayHasKey('items', $result['paymentOrder']);
+        $this->assertIsArray($result['payment_order']);
+        $this->assertArrayHasKey('id', $result['payment_order']);
+        $this->assertArrayHasKey('operation', $result['payment_order']);
+        $this->assertArrayHasKey('state', $result['payment_order']);
+        $this->assertArrayHasKey('items', $result['payment_order']);
         $this->assertIsString($result->getOperationByRel('update-paymentorder-updateorder'));
         $this->assertIsString($result->getOperationByRel('update-paymentorder-abort'));
         $this->assertIsString($result->getOperationByRel('redirect-paymentorder'));
@@ -47,7 +47,7 @@ class CheckoutTest extends TestCase
      */
     public function testGetPaymentIdByPaymentOrder(Response $response)
     {
-        $paymentId = $this->core->getPaymentIdByPaymentOrder($response['paymentOrder']['id']);
+        $paymentId = $this->core->getPaymentIdByPaymentOrder($response['payment_order']['id']);
         $this->assertEquals(false, $paymentId);
     }
 
@@ -67,6 +67,7 @@ class CheckoutTest extends TestCase
                 ]
             ]
         );
+
         $this->assertInstanceOf(Response::class, $result);
         $this->assertArrayHasKey('state', $result['paymentOrder']);
         $this->assertEquals('Aborted', $result['paymentOrder']['state']);

@@ -91,6 +91,9 @@ trait Mobilepay
         $paymentObject->setPayment($payment)
             ->setShoplogoUrl($urls->getLogoUrl());
 
+        // Process payment object
+        $paymentObject = $this->adapter->processPaymentObject($paymentObject, $orderId);
+
         $purchaseRequest = new Purchase($paymentObject);
         $purchaseRequest->setClient($this->client);
 

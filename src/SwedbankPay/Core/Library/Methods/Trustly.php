@@ -88,6 +88,9 @@ trait Trustly
         $paymentObject = new PaymentObject();
         $paymentObject->setPayment($payment);
 
+        // Process payment object
+        $paymentObject = $this->adapter->processPaymentObject($paymentObject, $orderId);
+
         $purchaseRequest = new Purchase($paymentObject);
         $purchaseRequest->setClient($this->client);
 
