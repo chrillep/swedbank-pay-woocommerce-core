@@ -1,3 +1,16 @@
+Version 4.0.0
+Added
+- Update Credit card and Checkout methods: use objects from sdk library
+- Add debug logging
+- Filters for product classes
+- Additional filters
+
+Changed
+- Fix Swish description
+- Refund fixes of Checkout
+- Fix transaction id
+- Update tests
+
 Version 3.1.0
 * Implemented `paymentUrl` feature
 * Update `initiateConsumerSession()` method
