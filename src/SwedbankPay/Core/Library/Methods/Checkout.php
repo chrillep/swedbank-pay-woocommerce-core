@@ -481,6 +481,7 @@ trait Checkout
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @SuppressWarnings(PHPMD.MissingImport)
      */
     public function captureCheckout($orderId, $amount = null, $vatAmount = 0, array $items = [])
     {
@@ -500,7 +501,9 @@ trait Checkout
         // Build items collection
         $orderItems = new OrderItemsCollection();
         foreach ($items as $item) {
-            /** @var OrderItemInterface $item */
+            if (is_array($item)) {
+                $item = new \SwedbankPay\Core\OrderItem($item);
+            }
 
             $orderItem = new OrderItem();
             $orderItem
@@ -703,6 +706,7 @@ trait Checkout
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.ElseExpression)
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @SuppressWarnings(PHPMD.MissingImport)
      */
     public function refundCheckout($orderId, $amount = null, $vatAmount = 0, array $items = [])
     {
@@ -725,10 +729,12 @@ trait Checkout
         $amount = 0;
         $vatAmount = 0;
         foreach ($items as $item) {
+            if (is_array($item)) {
+                $item = new \SwedbankPay\Core\OrderItem($item);
+            }
+
             $amount += $item->getAmount();
             $vatAmount += $item->getVatAmount();
-
-            /** @var OrderItemInterface $item */
 
             $orderItem = new OrderItem();
             $orderItem
