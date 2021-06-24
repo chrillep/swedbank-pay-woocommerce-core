@@ -481,6 +481,7 @@ trait Checkout
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @SuppressWarnings(PHPMD.MissingImport)
      */
     public function captureCheckout($orderId, $amount = null, $vatAmount = 0, array $items = [])
     {
@@ -705,6 +706,7 @@ trait Checkout
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.ElseExpression)
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @SuppressWarnings(PHPMD.MissingImport)
      */
     public function refundCheckout($orderId, $amount = null, $vatAmount = 0, array $items = [])
     {
