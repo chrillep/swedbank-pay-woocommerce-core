@@ -500,7 +500,9 @@ trait Checkout
         // Build items collection
         $orderItems = new OrderItemsCollection();
         foreach ($items as $item) {
-            /** @var OrderItemInterface $item */
+            if (is_array($item)) {
+                $item = new \SwedbankPay\Core\OrderItem($item);
+            }
 
             $orderItem = new OrderItem();
             $orderItem
@@ -725,10 +727,12 @@ trait Checkout
         $amount = 0;
         $vatAmount = 0;
         foreach ($items as $item) {
+            if (is_array($item)) {
+                $item = new \SwedbankPay\Core\OrderItem($item);
+            }
+
             $amount += $item->getAmount();
             $vatAmount += $item->getVatAmount();
-
-            /** @var OrderItemInterface $item */
 
             $orderItem = new OrderItem();
             $orderItem
