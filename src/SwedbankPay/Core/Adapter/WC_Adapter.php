@@ -689,17 +689,17 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 $order->save();
 
                 if (function_exists('wcs_is_subscription') && wcs_is_subscription($order)) {
-                	/** @var $order \WC_Subscription */
-	                $parent = $order->get_parent();
-	                if ($parent) {
-		                $parent->update_status('refunded', $message);
-	                }
+                    /** @var $order \WC_Subscription */
+                    $parent = $order->get_parent();
+                    if ($parent) {
+                        $parent->update_status('refunded', $message);
+                    }
                 } else {
-	                if (!$order->has_status('refunded')) {
-		                $order->update_status('refunded', $message);
-	                } else {
-		                $order->add_order_note($message);
-	                }
+                    if (!$order->has_status('refunded')) {
+                        $order->update_status('refunded', $message);
+                    } else {
+                        $order->add_order_note($message);
+                    }
                 }
 
                 break;

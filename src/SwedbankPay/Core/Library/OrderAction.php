@@ -38,18 +38,18 @@ trait OrderAction
         // Check the payment state online
         $order = $this->getOrder($orderId);
 
-	    if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
-		    // Fetch payment info
-		    try {
-			    $result = $this->fetchPaymentInfo($order->getPaymentOrderId());
-		    } catch (\Exception $e) {
-			    // Request failed
-			    return false;
-		    }
+        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+            // Fetch payment info
+            try {
+                $result = $this->fetchPaymentInfo($order->getPaymentOrderId());
+            } catch (\Exception $e) {
+                // Request failed
+                return false;
+            }
 
-		    return isset($result['paymentOrder']['remainingCaptureAmount'])
-		           && (float)$result['paymentOrder']['remainingCaptureAmount'] > 0.1;
-	    }
+            return isset($result['paymentOrder']['remainingCaptureAmount'])
+                   && (float)$result['paymentOrder']['remainingCaptureAmount'] > 0.1;
+        }
 
         // Fetch payment info
         try {
@@ -77,18 +77,18 @@ trait OrderAction
         // Check the payment state online
         $order = $this->getOrder($orderId);
 
-	    if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
-		    // Fetch payment info
-		    try {
-			    $result = $this->fetchPaymentInfo($order->getPaymentOrderId());
-		    } catch (\Exception $e) {
-			    // Request failed
-			    return false;
-		    }
+        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+            // Fetch payment info
+            try {
+                $result = $this->fetchPaymentInfo($order->getPaymentOrderId());
+            } catch (\Exception $e) {
+                // Request failed
+                return false;
+            }
 
-		    return isset($result['paymentOrder']['remainingCancellationAmount'])
-		           && (float)$result['paymentOrder']['remainingCancellationAmount'] > 0.1;
-	    }
+            return isset($result['paymentOrder']['remainingCancellationAmount'])
+                   && (float)$result['paymentOrder']['remainingCancellationAmount'] > 0.1;
+        }
 
         // Fetch payment info
         try {
@@ -118,18 +118,18 @@ trait OrderAction
             $amount = $order->getAmount();
         }
 
-	    if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
-		    // Fetch payment info
-		    try {
-			    $result = $this->fetchPaymentInfo($order->getPaymentOrderId());
-		    } catch (\Exception $e) {
-			    // Request failed
-			    return false;
-		    }
+        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+            // Fetch payment info
+            try {
+                $result = $this->fetchPaymentInfo($order->getPaymentOrderId());
+            } catch (\Exception $e) {
+                // Request failed
+                return false;
+            }
 
-		    return isset($result['paymentOrder']['remainingReversalAmount'])
-		           && (float)$result['paymentOrder']['remainingReversalAmount'] > 0.1;
-	    }
+            return isset($result['paymentOrder']['remainingReversalAmount'])
+                   && (float)$result['paymentOrder']['remainingReversalAmount'] > 0.1;
+        }
 
         // Should has payment id
         $paymentId = $order->getPaymentId();
@@ -185,9 +185,9 @@ trait OrderAction
         }
 
         // Use the checkout method if possible
-	    if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
-	    	return $this->captureCheckout($orderId, $amount, $vatAmount, $order->getItems());
-	    }
+        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+            return $this->captureCheckout($orderId, $amount, $vatAmount, $order->getItems());
+        }
 
         $paymentId = $order->getPaymentId();
         if (empty($paymentId)) {
@@ -295,10 +295,10 @@ trait OrderAction
             throw new Exception('Cancellation is not available.');
         }
 
-	    // Use the checkout method if possible
-	    if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
-		    return $this->cancelCheckout($orderId, $amount, $vatAmount);
-	    }
+        // Use the checkout method if possible
+        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+            return $this->cancelCheckout($orderId, $amount, $vatAmount);
+        }
 
         $paymentId = $order->getPaymentId();
         if (empty($paymentId)) {
@@ -406,10 +406,10 @@ trait OrderAction
             throw new Exception('Refund action is not available.');
         }
 
-	    // Use the checkout method if possible
-	    if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
-		    return $this->refundCheckout($orderId, $amount, $vatAmount, $order->getItems());
-	    }
+        // Use the checkout method if possible
+        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+            return $this->refundCheckout($orderId, $amount, $vatAmount, $order->getItems());
+        }
 
         $paymentId = $order->getPaymentId();
         if (empty($paymentId)) {
