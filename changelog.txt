@@ -1,3 +1,8 @@
+Version 4.0.2
+Changed
+- Fixed order actions of the checkout
+- Fixed: Uncaught Error: Call to a member function getReference() on array
+
 Version 4.0.1
 Changed
 - Fixed CC types options
