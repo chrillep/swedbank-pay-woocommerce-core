@@ -669,6 +669,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 
                 $order->payment_complete($transactionNumber);
                 $order->add_order_note($message);
+
                 break;
             case OrderInterface::STATUS_CANCELLED:
                 $order->update_meta_data('_payex_payment_state', $status);
@@ -687,10 +688,18 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 $order->update_meta_data('_payex_payment_state', $status);
                 $order->save();
 
-                if (!$order->has_status('refunded')) {
-                    $order->update_status('refunded', $message);
+                if (function_exists('wcs_is_subscription') && wcs_is_subscription($order)) {
+                    /** @var $order \WC_Subscription */
+                    $parent = $order->get_parent();
+                    if ($parent) {
+                        $parent->update_status('refunded', $message);
+                    }
                 } else {
-                    $order->add_order_note($message);
+                    if (!$order->has_status('refunded')) {
+                        $order->update_status('refunded', $message);
+                    } else {
+                        $order->add_order_note($message);
+                    }
                 }
 
                 break;
