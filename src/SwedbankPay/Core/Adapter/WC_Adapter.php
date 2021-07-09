@@ -167,6 +167,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * @param mixed $orderId
      *
      * @return array
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
     public function getPlatformUrls($orderId)
     {
