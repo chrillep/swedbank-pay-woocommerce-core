@@ -180,6 +180,19 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             WC()->api_request_url(get_class($this->gateway))
         );
 
+        // When paymentUrl was provided in the request then "seamless view" will be locked.
+        $paymentUrl = null;
+        if ($this->getConfiguration()[ConfigurationInterface::CHECKOUT_METHOD] ===
+            ConfigurationInterface::METHOD_SEAMLESS
+        ) {
+            $paymentUrl = add_query_arg(array('payment_url' => '1'), wc_get_checkout_url());
+        }
+
+        // Workaround: don't set paymentUrl if there's "pay_for_order" page
+        if (isset($_GET['pay_for_order'], $_GET['key'])) {
+            $paymentUrl = null;
+        }
+
         if ($this->gateway->is_new_credit_card) {
             return array(
                 PlatformUrlsInterface::COMPLETE_URL => add_query_arg(
@@ -191,7 +204,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
                 PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
                 PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
-                PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
+                PlatformUrlsInterface::PAYMENT_URL => $paymentUrl
             );
         }
 
@@ -208,7 +221,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
                 PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
                 PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
-                PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
+                PlatformUrlsInterface::PAYMENT_URL => $paymentUrl
             );
         }
 
@@ -218,7 +231,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
             PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
             PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
-            PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
+            PlatformUrlsInterface::PAYMENT_URL => $paymentUrl
         );
     }
 
@@ -399,6 +412,11 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 
         $items = apply_filters('swedbank_pay_order_items', $items, $order);
 
+        $userAgent = $order->get_customer_user_agent();
+        if (empty($userAgent)) {
+            $userAgent = 'WooCommerce/' . WC()->version;
+        }
+
         return array(
             OrderInterface::PAYMENT_METHOD => $this->getPaymentMethod($orderId),
             OrderInterface::ORDER_ID => $order->get_id(),
@@ -437,7 +455,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             OrderInterface::NEEDS_SHIPPING => $needsShipping,
 
             OrderInterface::HTTP_ACCEPT => isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : null,
-            OrderInterface::HTTP_USER_AGENT => $order->get_customer_user_agent(),
+            OrderInterface::HTTP_USER_AGENT => $userAgent,
             OrderInterface::BILLING_COUNTRY => $billingCountry,
             OrderInterface::BILLING_COUNTRY_CODE => $order->get_billing_country(),
             OrderInterface::BILLING_ADDRESS1 => $order->get_billing_address_1(),
