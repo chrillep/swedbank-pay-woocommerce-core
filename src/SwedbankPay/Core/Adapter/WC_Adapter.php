@@ -167,6 +167,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * @param mixed $orderId
      *
      * @return array
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
     public function getPlatformUrls($orderId)
     {
@@ -180,6 +181,19 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             WC()->api_request_url(get_class($this->gateway))
         );
 
+        // When paymentUrl was provided in the request then "seamless view" will be locked.
+        $paymentUrl = null;
+        if ($this->getConfiguration()[ConfigurationInterface::CHECKOUT_METHOD] ===
+            ConfigurationInterface::METHOD_SEAMLESS
+        ) {
+            $paymentUrl = add_query_arg(array('payment_url' => '1'), wc_get_checkout_url());
+        }
+
+        // Workaround: don't set paymentUrl if there's "pay_for_order" page
+        if (isset($_GET['pay_for_order'], $_GET['key'])) {
+            $paymentUrl = null;
+        }
+
         if ($this->gateway->is_new_credit_card) {
             return array(
                 PlatformUrlsInterface::COMPLETE_URL => add_query_arg(
@@ -191,7 +205,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
                 PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
                 PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
-                PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
+                PlatformUrlsInterface::PAYMENT_URL => $paymentUrl
             );
         }
 
@@ -208,7 +222,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
                 PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
                 PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
-                PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
+                PlatformUrlsInterface::PAYMENT_URL => $paymentUrl
             );
         }
 
@@ -218,7 +232,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             PlatformUrlsInterface::CALLBACK_URL => $callbackUrl,
             PlatformUrlsInterface::TERMS_URL => $this->getConfiguration()[ConfigurationInterface::TERMS_URL],
             PlatformUrlsInterface::LOGO_URL => $this->getConfiguration()[ConfigurationInterface::LOGO_URL],
-            PlatformUrlsInterface::PAYMENT_URL => add_query_arg(array('payment_url' => '1'), wc_get_checkout_url())
+            PlatformUrlsInterface::PAYMENT_URL => $paymentUrl
         );
     }
 
@@ -399,6 +413,11 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 
         $items = apply_filters('swedbank_pay_order_items', $items, $order);
 
+        $userAgent = $order->get_customer_user_agent();
+        if (empty($userAgent)) {
+            $userAgent = 'WooCommerce/' . WC()->version;
+        }
+
         return array(
             OrderInterface::PAYMENT_METHOD => $this->getPaymentMethod($orderId),
             OrderInterface::ORDER_ID => $order->get_id(),
@@ -437,7 +456,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             OrderInterface::NEEDS_SHIPPING => $needsShipping,
 
             OrderInterface::HTTP_ACCEPT => isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : null,
-            OrderInterface::HTTP_USER_AGENT => $order->get_customer_user_agent(),
+            OrderInterface::HTTP_USER_AGENT => $userAgent,
             OrderInterface::BILLING_COUNTRY => $billingCountry,
             OrderInterface::BILLING_COUNTRY_CODE => $order->get_billing_country(),
             OrderInterface::BILLING_ADDRESS1 => $order->get_billing_address_1(),
@@ -819,6 +838,11 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * @param string $maskedPan
      * @param string $expiryDate
      * @param mixed|null $orderId
+     *
+     * @throws Exception
+     * @SuppressWarnings(Generic.Files.LineLength.TooLong)
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function savePaymentToken(
         $customerId,
@@ -829,6 +853,16 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         $expiryDate,
         $orderId = null
     ) {
+        // Check if recurrenceToken is not exists
+        if (!empty($recurrenceToken)) {
+            global $wpdb;
+
+            $query = "SELECT payment_token_id FROM `{$wpdb->prefix}woocommerce_payment_tokenmeta` WHERE `meta_key` = %s AND `meta_value` = %s";
+            if ($wpdb->get_var($wpdb->prepare($query, 'recurrence_token', $recurrenceToken))) {
+                return false;
+            }
+        }
+
         if (!property_exists($this->gateway, 'payment_token_class')) {
             return;
         }
@@ -837,6 +871,11 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         if (!is_string($this->gateway->payment_token_class) ||
             !class_exists($this->gateway->payment_token_class, false)) {
             throw new Exception(__('Payment Token class is undefined.', 'swedbank-pay-woocommerce-payments'));
+        }
+
+        // Token is always required
+        if (empty($paymentToken)) {
+            $paymentToken = 'none';
         }
 
         $expiryDate = explode('/', $expiryDate);
@@ -851,12 +890,31 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         $token->set_card_type(strtolower($cardBrand));
         $token->set_user_id($customerId);
         $token->set_masked_pan($maskedPan);
-        $token->save();
-        if (!$token->get_id()) {
+
+        // Save token
+        try {
+            $token->save();
+            if (!$token->get_id()) {
+                throw new Exception(__('Unable to save the card.', 'swedbank-pay-woocommerce-payments'));
+            }
+        } catch (\Exception $e) {
+            $this->log('error', 'Failed to save card token: ' . $e->getMessage(), [
+                $paymentToken,
+                $recurrenceToken,
+                $maskedPan,
+                $expiryDate
+            ]);
+
             throw new Exception(__('There was a problem adding the card.', 'swedbank-pay-woocommerce-payments'));
         }
 
-        $this->log('info', 'Token has been saved', [$token->get_id()]);
+        $this->log('info', 'Token has been saved', [
+            $token->get_id(),
+            $paymentToken,
+            $recurrenceToken,
+            $maskedPan,
+            $expiryDate
+        ]);
 
         // Add payment token
         if ($orderId) {
