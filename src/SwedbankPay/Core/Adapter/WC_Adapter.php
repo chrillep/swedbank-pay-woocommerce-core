@@ -838,6 +838,8 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * @param string $maskedPan
      * @param string $expiryDate
      * @param mixed|null $orderId
+     *
+     * @throws Exception
      */
     public function savePaymentToken(
         $customerId,
@@ -848,6 +850,16 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         $expiryDate,
         $orderId = null
     ) {
+        // Check if recurrenceToken is not exists
+        if (!empty($recurrenceToken)) {
+            global $wpdb;
+
+            $query = "SELECT payment_token_id FROM `{$wpdb->prefix}woocommerce_payment_tokenmeta` WHERE `meta_key` = %s AND `meta_value` = %s";
+            if ($wpdb->get_var($wpdb->prepare($query, 'recurrence_token', $recurrenceToken))) {
+                return false;
+            }
+        }
+
         if (!property_exists($this->gateway, 'payment_token_class')) {
             return;
         }
@@ -856,6 +868,11 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         if (!is_string($this->gateway->payment_token_class) ||
             !class_exists($this->gateway->payment_token_class, false)) {
             throw new Exception(__('Payment Token class is undefined.', 'swedbank-pay-woocommerce-payments'));
+        }
+
+        // Token is always required
+        if (empty($paymentToken)) {
+            $paymentToken = 'none';
         }
 
         $expiryDate = explode('/', $expiryDate);
@@ -870,12 +887,32 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         $token->set_card_type(strtolower($cardBrand));
         $token->set_user_id($customerId);
         $token->set_masked_pan($maskedPan);
-        $token->save();
-        if (!$token->get_id()) {
+
+        // Save token
+        try {
+            $token->save();
+            if (!$token->get_id()) {
+                throw new Exception(__('Unable to save the card.', 'swedbank-pay-woocommerce-payments'));
+            }
+        } catch (\Exception $e) {
+            $this->log('error', 'Failed to save card token: ' . $e->getMessage(), [
+                $paymentToken,
+                $recurrenceToken,
+                $maskedPan,
+                $expiryDate
+            ]);
+
             throw new Exception(__('There was a problem adding the card.', 'swedbank-pay-woocommerce-payments'));
         }
 
-        $this->log('info', 'Token has been saved', [$token->get_id()]);
+        $this->log('info', 'Token has been saved', [
+            $token->get_id(),
+                $paymentToken,
+                $recurrenceToken,
+                $maskedPan,
+                $expiryDate
+            ]
+        );
 
         // Add payment token
         if ($orderId) {
