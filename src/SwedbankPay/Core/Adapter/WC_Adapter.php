@@ -840,6 +840,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * @param mixed|null $orderId
      *
      * @throws Exception
+     * @SuppressWarnings(Generic.Files.LineLength.TooLong)
      */
     public function savePaymentToken(
         $customerId,
@@ -907,12 +908,11 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 
         $this->log('info', 'Token has been saved', [
             $token->get_id(),
-                $paymentToken,
-                $recurrenceToken,
-                $maskedPan,
-                $expiryDate
-            ]
-        );
+            $paymentToken,
+            $recurrenceToken,
+            $maskedPan,
+            $expiryDate
+        ]);
 
         // Add payment token
         if ($orderId) {
