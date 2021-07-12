@@ -841,6 +841,8 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      *
      * @throws Exception
      * @SuppressWarnings(Generic.Files.LineLength.TooLong)
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function savePaymentToken(
         $customerId,
