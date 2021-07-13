@@ -906,6 +906,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 
         // Check if recurrenceToken is not exists
         if (!empty($recurrenceToken)) {
+            //phpcs:ignore Generic.Files.LineLength.TooLong
             $query = "SELECT payment_token_id FROM `{$wpdb->prefix}woocommerce_payment_tokenmeta` WHERE `meta_key` = %s AND `meta_value` = %s";
             if ($wpdb->get_var($wpdb->prepare($query, 'recurrence_token', $recurrenceToken))) {
                 return;
@@ -947,8 +948,10 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             throw new Exception('There was a problem adding the card.');
         }
 
-        $this->log('info',
-            sprintf('Card %s %s %s/%s has been saved.',
+        $this->log(
+            'info',
+            sprintf(
+                'Card %s %s %s/%s has been saved.',
                 strtoupper($cardBrand),
                 $maskedPan,
                 $expiryDate[0],
@@ -968,7 +971,8 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 
             // Add order note
             $order->add_order_note(
-                sprintf('Card %s %s %s/%s has been saved.',
+                sprintf(
+                    'Card %s %s %s/%s has been saved.',
                     strtoupper($cardBrand),
                     $maskedPan,
                     $expiryDate[0],
