@@ -112,7 +112,7 @@ trait Trustly
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());

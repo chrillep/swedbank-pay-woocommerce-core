@@ -60,8 +60,7 @@ trait PaymentInfo
             $time = microtime(true) - $start;
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('[%.4F] Response: %s', $time, $responseBody),
-                [$method, $url, $params]
+                sprintf('[%.4F] Response: %s', $time, $responseBody)
             );
 
             return new Response($result);
@@ -121,7 +120,10 @@ trait PaymentInfo
         try {
             $result = $this->request('GET', $paymentIdUrl);
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }
@@ -149,7 +151,10 @@ trait PaymentInfo
         try {
             $result = $this->request('GET', $paymentIdUrl);
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }
@@ -194,7 +199,10 @@ trait PaymentInfo
         try {
             $result = $this->request('GET', $paymentIdUrl);
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }
@@ -227,7 +235,10 @@ trait PaymentInfo
         try {
             $result = $this->request('GET', $paymentIdUrl);
         } catch (\Exception $e) {
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }

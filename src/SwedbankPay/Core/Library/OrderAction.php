@@ -235,7 +235,7 @@ trait OrderAction
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_CAPTURED,
-                        sprintf('Transaction is captured. Amount: %s', $amount),
+                        sprintf('Payment has been captured. Amount: %s', $amount),
                         $transaction['number']
                     );
                     break;
@@ -262,7 +262,7 @@ trait OrderAction
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -371,7 +371,7 @@ trait OrderAction
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -505,7 +505,7 @@ trait OrderAction
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -694,7 +694,7 @@ trait OrderAction
             } catch (Exception $exception) {
                 $this->log(
                     LogLevel::ERROR,
-                    sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $exception->getMessage())
+                    sprintf('%s: API Exception: %s', __METHOD__, $exception->getMessage())
                 );
 
                 continue;
@@ -769,11 +769,6 @@ trait OrderAction
                             $order->getOrderId()
                         );
 
-                        $this->addOrderNote(
-                            $orderId,
-                            sprintf('Card %s has been saved.', $verification->getMaskedPan())
-                        );
-
                         // Use the first item only
                         break;
                     }
@@ -832,11 +827,6 @@ trait OrderAction
                                 $authorization->getMaskedPan(),
                                 $authorization->getExpireDate(),
                                 $order->getOrderId()
-                            );
-
-                            $this->addOrderNote(
-                                $orderId,
-                                sprintf('Card %s has been saved.', $authorization->getMaskedPan())
                             );
 
                             // Use the first item only

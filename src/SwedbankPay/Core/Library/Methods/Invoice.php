@@ -113,7 +113,7 @@ trait Invoice
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -144,7 +144,7 @@ trait Invoice
         } catch (\Exception $e) {
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -182,7 +182,7 @@ trait Invoice
         } catch (\Exception $e) {
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -250,7 +250,7 @@ trait Invoice
         } catch (\Exception $e) {
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -345,7 +345,7 @@ trait Invoice
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_CAPTURED,
-                        sprintf('Transaction is captured. Amount: %s', $amount),
+                        sprintf('Payment has been captured. Amount: %s', $amount),
                         $transaction['number']
                     );
                     break;
@@ -372,7 +372,7 @@ trait Invoice
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -473,7 +473,7 @@ trait Invoice
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -598,7 +598,7 @@ trait Invoice
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());

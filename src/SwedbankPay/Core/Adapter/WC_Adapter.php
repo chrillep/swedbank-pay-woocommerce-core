@@ -653,7 +653,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         if ($transactionNumber) {
             $transactions = (array) $order->get_meta('_sb_transactions');
             if (in_array($transactionNumber, $transactions)) {
-                $this->log('info', 'Skip order status update', [$orderId, $transactionNumber]);
+                $this->log('info', 'Skip order status update', [$orderId, $status, $transactionNumber]);
                 return;
             }
 
@@ -664,10 +664,20 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             $order->save();
         }
 
+        $this->log('info', sprintf('Update order status #%s to %s', $orderId, $status));
+
         switch ($status) {
             case OrderInterface::STATUS_PENDING:
                 $order->update_meta_data('_payex_payment_state', $status);
-                $order->update_status('on-hold', $message);
+                $order->save();
+
+                // Set on-hold
+                if (!$order->has_status('on-hold')) {
+                    $order->update_status('on-hold', $message);
+                } else {
+                    $order->add_order_note($message);
+                }
+
                 break;
             case OrderInterface::STATUS_AUTHORIZED:
                 $order->update_meta_data('_payex_payment_state', $status);
@@ -679,26 +689,45 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                     wc_reduce_stock_levels($order->get_id());
                 }
 
-                $order->update_status('on-hold', $message);
+                // Set on-hold
+                if (!$order->has_status('on-hold')) {
+                    $order->update_status('on-hold', $message);
+                } else {
+                    $order->add_order_note($message);
+                }
 
                 break;
             case OrderInterface::STATUS_CAPTURED:
                 $order->update_meta_data('_payex_payment_state', $status);
                 $order->save();
 
-                $order->payment_complete($transactionNumber);
-                $order->add_order_note($message);
+                if (!$order->is_paid()) {
+                    $order->payment_complete($transactionNumber);
+                    $order->add_order_note($message);
+                } else {
+                    $order->update_status(
+                        apply_filters(
+                            'woocommerce_payment_complete_order_status',
+                            $order->needs_processing() ? 'processing' : 'completed',
+                            $order->get_id(),
+                            $order
+                        ),
+                        $message
+                    );
+                }
 
                 break;
             case OrderInterface::STATUS_CANCELLED:
                 $order->update_meta_data('_payex_payment_state', $status);
                 $order->save();
 
+                // Set cancelled
                 if (!$order->has_status('cancelled')) {
                     $order->update_status('cancelled', $message);
                 } else {
                     $order->add_order_note($message);
                 }
+
                 break;
             case OrderInterface::STATUS_REFUNDED:
                 // @todo Implement Refunds creation
@@ -839,6 +868,8 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * @param string $expiryDate
      * @param mixed|null $orderId
      *
+     * @return void
+     *
      * @throws Exception
      * @SuppressWarnings(Generic.Files.LineLength.TooLong)
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
@@ -853,15 +884,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         $expiryDate,
         $orderId = null
     ) {
-        // Check if recurrenceToken is not exists
-        if (!empty($recurrenceToken)) {
-            global $wpdb;
-
-            $query = "SELECT payment_token_id FROM `{$wpdb->prefix}woocommerce_payment_tokenmeta` WHERE `meta_key` = %s AND `meta_value` = %s";
-            if ($wpdb->get_var($wpdb->prepare($query, 'recurrence_token', $recurrenceToken))) {
-                return false;
-            }
-        }
+        global $wpdb;
 
         if (!property_exists($this->gateway, 'payment_token_class')) {
             return;
@@ -870,7 +893,23 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         // Create Payment Token
         if (!is_string($this->gateway->payment_token_class) ||
             !class_exists($this->gateway->payment_token_class, false)) {
-            throw new Exception(__('Payment Token class is undefined.', 'swedbank-pay-woocommerce-payments'));
+            throw new Exception('Payment Token class is not defined.');
+        }
+
+        // Check if paymentToken is not exists
+        if (!empty($paymentToken) && $paymentToken !== 'none') {
+            $query = "SELECT token_id FROM `{$wpdb->prefix}woocommerce_payment_tokens` WHERE `token` = %s;";
+            if ($wpdb->get_var($wpdb->prepare($query, $paymentToken))) {
+                return;
+            }
+        }
+
+        // Check if recurrenceToken is not exists
+        if (!empty($recurrenceToken)) {
+            $query = "SELECT payment_token_id FROM `{$wpdb->prefix}woocommerce_payment_tokenmeta` WHERE `meta_key` = %s AND `meta_value` = %s";
+            if ($wpdb->get_var($wpdb->prepare($query, 'recurrence_token', $recurrenceToken))) {
+                return;
+            }
         }
 
         // Token is always required
@@ -895,7 +934,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         try {
             $token->save();
             if (!$token->get_id()) {
-                throw new Exception(__('Unable to save the card.', 'swedbank-pay-woocommerce-payments'));
+                throw new Exception('Unable to save the card.');
             }
         } catch (\Exception $e) {
             $this->log('error', 'Failed to save card token: ' . $e->getMessage(), [
@@ -905,26 +944,43 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 $expiryDate
             ]);
 
-            throw new Exception(__('There was a problem adding the card.', 'swedbank-pay-woocommerce-payments'));
+            throw new Exception('There was a problem adding the card.');
         }
 
-        $this->log('info', 'Token has been saved', [
-            $token->get_id(),
-            $paymentToken,
-            $recurrenceToken,
-            $maskedPan,
-            $expiryDate
-        ]);
+        $this->log('info',
+            sprintf('Card %s %s %s/%s has been saved.',
+                strtoupper($cardBrand),
+                $maskedPan,
+                $expiryDate[0],
+                $expiryDate[1]
+            ),
+            [
+                $token->get_id(),
+                $paymentToken,
+                $recurrenceToken
+            ]
+        );
 
         // Add payment token
         if ($orderId) {
             $order = wc_get_order($orderId);
             $order->add_payment_token($token);
 
+            // Add order note
+            $order->add_order_note(
+                sprintf('Card %s %s %s/%s has been saved.',
+                    strtoupper($cardBrand),
+                    $maskedPan,
+                    $expiryDate[0],
+                    $expiryDate[1]
+                )
+            );
+
             // Activate subscription if this is WC_Subscriptions
-            if (function_exists('wcs_order_contains_subscription') &&
-                 wcs_order_contains_subscription($order) &&
-                 abs($order->get_total()) < 0.01
+            if (!$order->is_paid() &&
+                ((function_exists('wcs_order_contains_subscription') &&
+                  wcs_order_contains_subscription($order)) ||
+                 abs($order->get_total()) < 0.01)
             ) {
                 $order->payment_complete();
             }
@@ -1051,7 +1107,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
     /**
      * Get Order Info
      *
-     * @param WC_Order $order
+     * @param \WC_Order $order
      *
      * @return array
      */
@@ -1089,7 +1145,6 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      */
     private function getUuid($node)
     {
-        //return \Ramsey\Uuid\Uuid::uuid5( \Ramsey\Uuid\Uuid::NAMESPACE_OID, $node )->toString();
         return apply_filters('swedbank_pay_generate_uuid', $node);
     }
 }
