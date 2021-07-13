@@ -645,6 +645,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * @param mixed|null $transactionNumber
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.ElseExpression)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function updateOrderStatus($orderId, $status, $message = null, $transactionNumber = null)
     {
@@ -874,6 +875,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * @SuppressWarnings(Generic.Files.LineLength.TooLong)
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function savePaymentToken(
         $customerId,
