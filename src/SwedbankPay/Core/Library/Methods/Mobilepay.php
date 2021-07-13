@@ -113,7 +113,10 @@ trait Mobilepay
                 $purchaseRequest->getClient()->getDebugInfo()
             );
 
-            $this->log(LogLevel::DEBUG, sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage()));
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
+            );
 
             throw new Exception($e->getMessage());
         }

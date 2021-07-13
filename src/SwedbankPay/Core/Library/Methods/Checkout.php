@@ -177,7 +177,7 @@ trait Checkout
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -267,7 +267,7 @@ trait Checkout
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -384,7 +384,7 @@ trait Checkout
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -418,14 +418,14 @@ trait Checkout
         } catch (\SwedbankPay\Core\Exception $e) {
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage(), $e->getCode(), null, $e->getProblems());
         } catch (\Exception $e) {
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -560,7 +560,7 @@ trait Checkout
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_CAPTURED,
-                        sprintf('Transaction is captured. Amount: %s', $amount),
+                        sprintf('Payment has been captured. Amount: %s', $amount),
                         $transaction['number']
                     );
                     break;
@@ -587,7 +587,7 @@ trait Checkout
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -685,7 +685,7 @@ trait Checkout
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
@@ -844,7 +844,7 @@ trait Checkout
 
             $this->log(
                 LogLevel::DEBUG,
-                sprintf('%s::%s: API Exception: %s', __CLASS__, __METHOD__, $e->getMessage())
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
             throw new Exception($e->getMessage());
