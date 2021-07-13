@@ -1,3 +1,9 @@
+Version 4.0.3
+Changed
+- Fixed order status update in `updateOrderStatus()`
+- Fixed token saving in `savePaymentToken()`
+- Logs clean up
+
 Version 4.0.2
 Changed
 - Fixed order actions of the checkout
