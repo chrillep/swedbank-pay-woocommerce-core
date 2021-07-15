@@ -675,7 +675,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 // Set on-hold
                 if (!$order->has_status('on-hold')) {
                     $order->update_status('on-hold', $message);
-                } elseif($message) {
+                } elseif ($message) {
                     $order->add_order_note($message);
                 }
 
@@ -693,7 +693,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 // Set on-hold
                 if (!$order->has_status('on-hold')) {
                     $order->update_status('on-hold', $message);
-                } elseif($message) {
+                } elseif ($message) {
                     $order->add_order_note($message);
                 }
 
@@ -728,7 +728,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 // Set cancelled
                 if (!$order->has_status('cancelled')) {
                     $order->update_status('cancelled', $message);
-                } elseif($message) {
+                } elseif ($message) {
                     $order->add_order_note($message);
                 }
 
@@ -749,7 +749,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 } else {
                     if (!$order->has_status('refunded')) {
                         $order->update_status('refunded', $message);
-                    } elseif($message) {
+                    } elseif ($message) {
                         $order->add_order_note($message);
                     }
                 }
@@ -758,7 +758,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             case OrderInterface::STATUS_FAILED:
                 if (!$order->is_paid()) {
                     $order->update_status('failed', $message);
-                } elseif($message) {
+                } elseif ($message) {
                     $order->add_order_note($message);
                 }
 
