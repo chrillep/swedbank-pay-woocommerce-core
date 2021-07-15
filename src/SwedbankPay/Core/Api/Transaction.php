@@ -61,6 +61,7 @@ class Transaction extends Data implements TransactionInterface
     /**
      * Get Failed Reason.
      *
+     * @deprecated Use getProblem()
      * @return string
      */
     public function getFailedReason()
@@ -71,6 +72,7 @@ class Transaction extends Data implements TransactionInterface
     /**
      * Get Failed Error Code.
      *
+     * @deprecated Use getProblem()
      * @return string
      */
     public function getFailedErrorCode()
@@ -81,6 +83,7 @@ class Transaction extends Data implements TransactionInterface
     /**
      * Get Failed Error Description.
      *
+     * @deprecated Use getProblem()
      * @return string
      */
     public function getFailedErrorDescription()
@@ -95,6 +98,11 @@ class Transaction extends Data implements TransactionInterface
      */
     public function getFailedDetails()
     {
+        if ($this->hasData('problem')) {
+            return $this->getProblem()->toString();
+        }
+
+        // Deprecated
         return implode('; ', [
             $this->getFailedReason(),
             $this->getFailedErrorCode(),
@@ -130,5 +138,15 @@ class Transaction extends Data implements TransactionInterface
     public function isFailed()
     {
         return $this->getState() === self::STATE_FAILED;
+    }
+
+    /**
+     * Get Problem.
+     *
+     * @return Problem
+     */
+    public function getProblem()
+    {
+        return new Problem($this->getData(self::PROBLEM));
     }
 }
