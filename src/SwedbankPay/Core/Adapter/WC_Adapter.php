@@ -684,14 +684,14 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 $order->update_meta_data('_payex_payment_state', $status);
                 $order->save();
 
-                // Reduce stock
-                $orderStockReduced = $order->get_meta('_order_stock_reduced');
-                if (!$orderStockReduced) {
-                    wc_reduce_stock_levels($order->get_id());
-                }
-
                 // Set on-hold
                 if (!$order->has_status('on-hold')) {
+                    // Reduce stock
+                    $orderStockReduced = $order->get_meta('_order_stock_reduced');
+                    if (!$orderStockReduced) {
+                        wc_reduce_stock_levels($order->get_id());
+                    }
+
                     $order->update_status('on-hold', $message);
                 } elseif ($message) {
                     $order->add_order_note($message);
