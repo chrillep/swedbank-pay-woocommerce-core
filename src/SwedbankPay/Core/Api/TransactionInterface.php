@@ -23,6 +23,7 @@ namespace SwedbankPay\Core\Api;
  * @method string getDescription()
  * @method $this setDescription($value)
  * @method $this setPayeeReference($value)
+ * @method array getProblem()
  */
 interface TransactionInterface
 {
@@ -44,6 +45,7 @@ interface TransactionInterface
     const FAILED_REASON = 'failedReason';
     const FAILED_ERROR_CODE = 'failedErrorCode';
     const FAILED_ERROR_DESCRIPTION = 'failedErrorDescription';
+    const PROBLEM = 'problem';
 
     /**
      * Get VAT amount.

@@ -732,7 +732,8 @@ trait OrderAction
                     $this->addOrderNote(
                         $orderId,
                         sprintf(
-                            'Verification has been failed. Reason: %s.',
+                            'Verification has been failed. Transaction: %s. Reason: %s.',
+                            $transaction->getNumber(),
                             $transaction->getFailedDetails()
                         )
                     );
@@ -743,7 +744,10 @@ trait OrderAction
                 if ($transaction->isPending()) {
                     $this->addOrderNote(
                         $orderId,
-                        'Verification transaction is pending.'
+                        sprintf(
+                            'Verification transaction is pending. Transaction: %s',
+                            $transaction->getNumber()
+                        )
                     );
 
                     break;
@@ -780,7 +784,11 @@ trait OrderAction
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_FAILED,
-                        sprintf('Authorization has been failed. Reason: %s.', $transaction->getFailedDetails()),
+                        sprintf(
+                            'Authorization has been failed. Transaction: %s. Reason: %s.',
+                            $transaction->getNumber(),
+                            $transaction->getFailedDetails()
+                        ),
                         $transaction->getNumber()
                     );
 
@@ -791,7 +799,10 @@ trait OrderAction
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_AUTHORIZED,
-                        'Authorization is pending.',
+                        sprintf(
+                            'Authorization is pending. Transaction: %s.',
+                            $transaction->getNumber()
+                        ),
                         $transaction->getNumber()
                     );
 
@@ -842,7 +853,11 @@ trait OrderAction
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_FAILED,
-                        sprintf('Capture has been failed. Reason: %s.', $transaction->getFailedDetails()),
+                        sprintf(
+                            'Capture has been failed. Transaction: %s. Reason: %s.',
+                            $transaction->getNumber(),
+                            $transaction->getFailedDetails()
+                        ),
                         $transaction->getNumber()
                     );
 
@@ -853,7 +868,10 @@ trait OrderAction
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_AUTHORIZED,
-                        'Capture is pending.',
+                        sprintf(
+                            'Capture is pending. Transaction: %s',
+                            $transaction->getNumber()
+                        ),
                         $transaction->getNumber()
                     );
 
@@ -872,7 +890,11 @@ trait OrderAction
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_FAILED,
-                        sprintf('Cancellation has been failed. Reason: %s.', $transaction->getFailedDetails()),
+                        sprintf(
+                            'Cancellation has been failed. Transaction: %s. Reason: %s.',
+                            $transaction->getNumber(),
+                            $transaction->getFailedDetails()
+                        ),
                         $transaction->getNumber()
                     );
 
@@ -883,7 +905,10 @@ trait OrderAction
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_CANCELLED,
-                        'Cancellation is pending.',
+                        sprintf(
+                            'Cancellation is pending. Transaction: %s',
+                            $transaction->getNumber()
+                        ),
                         $transaction->getNumber()
                     );
 
@@ -902,7 +927,11 @@ trait OrderAction
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_FAILED,
-                        sprintf('Reversal has been failed. Reason: %s.', $transaction->getFailedDetails()),
+                        sprintf(
+                            'Reversal has been failed. Transaction: %s. Reason: %s.',
+                            $transaction->getNumber(),
+                            $transaction->getFailedDetails()
+                        ),
                         $transaction->getNumber()
                     );
 
@@ -913,7 +942,10 @@ trait OrderAction
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_REFUNDED,
-                        'Reversal is pending.',
+                        sprintf(
+                            'Reversal is pending. Transaction: %s',
+                            $transaction->getNumber()
+                        ),
                         $transaction->getNumber()
                     );
 

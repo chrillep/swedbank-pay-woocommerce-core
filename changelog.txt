@@ -1,3 +1,13 @@
+Version 4.0.4
+Added
+- `Problem` class
+- `getProblem()` method in `Transaction` class
+
+Changed
+- Prevent order cancellation if have failed transaction
+- Improved order notes
+- Fixed stock reducing on authorization
+
 Version 4.0.3
 Changed
 - Fixed order status update in `updateOrderStatus()`

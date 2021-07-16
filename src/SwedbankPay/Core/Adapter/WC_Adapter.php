@@ -675,7 +675,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 // Set on-hold
                 if (!$order->has_status('on-hold')) {
                     $order->update_status('on-hold', $message);
-                } else {
+                } elseif ($message) {
                     $order->add_order_note($message);
                 }
 
@@ -684,16 +684,16 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 $order->update_meta_data('_payex_payment_state', $status);
                 $order->save();
 
-                // Reduce stock
-                $orderStockReduced = $order->get_meta('_order_stock_reduced');
-                if (!$orderStockReduced) {
-                    wc_reduce_stock_levels($order->get_id());
-                }
-
                 // Set on-hold
                 if (!$order->has_status('on-hold')) {
+                    // Reduce stock
+                    $orderStockReduced = $order->get_meta('_order_stock_reduced');
+                    if (!$orderStockReduced) {
+                        wc_reduce_stock_levels($order->get_id());
+                    }
+
                     $order->update_status('on-hold', $message);
-                } else {
+                } elseif ($message) {
                     $order->add_order_note($message);
                 }
 
@@ -704,7 +704,10 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 
                 if (!$order->is_paid()) {
                     $order->payment_complete($transactionNumber);
-                    $order->add_order_note($message);
+
+                    if ($message) {
+                        $order->add_order_note($message);
+                    }
                 } else {
                     $order->update_status(
                         apply_filters(
@@ -725,7 +728,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 // Set cancelled
                 if (!$order->has_status('cancelled')) {
                     $order->update_status('cancelled', $message);
-                } else {
+                } elseif ($message) {
                     $order->add_order_note($message);
                 }
 
@@ -746,14 +749,19 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 } else {
                     if (!$order->has_status('refunded')) {
                         $order->update_status('refunded', $message);
-                    } else {
+                    } elseif ($message) {
                         $order->add_order_note($message);
                     }
                 }
 
                 break;
             case OrderInterface::STATUS_FAILED:
-                $order->update_status('failed', $message);
+                if (!$order->is_paid()) {
+                    $order->update_status('failed', $message);
+                } elseif ($message) {
+                    $order->add_order_note($message);
+                }
+
                 break;
         }
     }
