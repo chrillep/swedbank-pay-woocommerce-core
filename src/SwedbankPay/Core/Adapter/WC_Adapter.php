@@ -24,6 +24,7 @@ use WC_Order_Item_Fee;
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.ExcessiveClassLength)
  * @SuppressWarnings(PHPMD.TooManyMethods)
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 // phpcs:ignore
 class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
