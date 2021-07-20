@@ -75,7 +75,7 @@ class OrderActionTest extends TestCase
 
     public function testCreateCreditMemo()
     {
-        $this->expectException(Exception::class);
-        $this->core->createCreditMemo(1, 123, 123, 'Test refund');
+        $result = $this->core->createCreditMemo(1, 123, 123, 'Test refund');
+        $this->assertEquals(null, $result);
     }
 }
