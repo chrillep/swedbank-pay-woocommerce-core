@@ -187,6 +187,16 @@ interface CoreInterface
     public function generatePayeeReference($orderId);
 
     /**
+     * Create Credit Memo.
+     *
+     * @param mixed $orderId
+     * @param float $amount
+     * @param mixed $transactionId
+     * @param string $description
+     */
+    public function createCreditMemo($orderId, $amount, $transactionId, $description);
+
+    /**
      * Do API Request
      *
      * @param       $method

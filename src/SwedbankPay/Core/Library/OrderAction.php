@@ -189,16 +189,15 @@ trait OrderAction
             return $this->captureCheckout($orderId, $amount, $vatAmount, $order->getItems());
         }
 
+        // Use the invoice method if possible
+        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_INVOICE) {
+            // @todo Should we use different credentials?
+            return $this->captureInvoice($orderId, $amount, $vatAmount, $order->getItems());
+        }
+
         $paymentId = $order->getPaymentId();
         if (empty($paymentId)) {
             throw new Exception('Unable to get payment ID');
-        }
-
-        // Checkout method can use the Invoice method
-        $info = $this->fetchPaymentInfo($paymentId);
-        if ($info['payment']['instrument'] === 'Invoice') {
-            // @todo Should we use different credentials?
-            return $this->captureInvoice($orderId, $amount, $vatAmount);
         }
 
         $transactionData = new TransactionCapture();
@@ -226,32 +225,14 @@ trait OrderAction
             $result = $responseService->getResponseData();
 
             // Save transaction
+            /** @var Transaction $transaction */
             $transaction = $result['capture']['transaction'];
-            $this->saveTransaction($orderId, $transaction);
-
-
-            switch ($transaction['state']) {
-                case TransactionInterface::STATE_COMPLETED:
-                    $this->updateOrderStatus(
-                        $orderId,
-                        OrderInterface::STATUS_CAPTURED,
-                        sprintf('Payment has been captured. Amount: %s', $amount),
-                        $transaction['number']
-                    );
-                    break;
-                case TransactionInterface::STATE_INITIALIZED:
-                    $this->updateOrderStatus(
-                        $orderId,
-                        OrderInterface::STATUS_AUTHORIZED,
-                        sprintf('Transaction capture status: %s. Amount: %s', $transaction['state'], $amount)
-                    );
-                    break;
-                case TransactionInterface::STATE_FAILED:
-                    $message = $transaction['failedReason'] ?? 'Capture is failed.';
-                    throw new Exception($message);
-                default:
-                    throw new Exception('Capture is failed.');
+            if (is_array($transaction)) {
+                $transaction = new Transaction($transaction);
             }
+
+            $this->saveTransaction($orderId, $transaction);
+            $this->processTransaction($orderId, $transaction);
 
             return new Response($result);
         } catch (ClientException $e) {
@@ -300,16 +281,15 @@ trait OrderAction
             return $this->cancelCheckout($orderId, $amount, $vatAmount);
         }
 
+        // Use the invoice method if possible
+        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_INVOICE) {
+            // @todo Should we use different credentials?
+            return $this->cancelInvoice($orderId, $amount, $vatAmount);
+        }
+
         $paymentId = $order->getPaymentId();
         if (empty($paymentId)) {
             throw new Exception('Unable to get payment ID');
-        }
-
-        // Checkout method can use the Invoice method
-        $info = $this->fetchPaymentInfo($paymentId);
-        if ($info['payment']['instrument'] === 'Invoice') {
-            // @todo Should we use different credentials?
-            return $this->cancelInvoice($orderId, $amount, $vatAmount);
         }
 
         $transactionData = new TransactionCancellation();
@@ -335,32 +315,14 @@ trait OrderAction
             $result = $responseService->getResponseData();
 
             // Save transaction
+            /** @var Transaction $transaction */
             $transaction = $result['cancellation']['transaction'];
-            $this->saveTransaction($orderId, $transaction);
-
-            switch ($transaction['state']) {
-                case TransactionInterface::STATE_COMPLETED:
-                    $this->updateOrderStatus(
-                        $orderId,
-                        OrderInterface::STATUS_CANCELLED,
-                        'Transaction is cancelled.',
-                        $transaction['number']
-                    );
-                    break;
-                case TransactionInterface::STATE_INITIALIZED:
-                case TransactionInterface::STATE_AWAITING_ACTIVITY:
-                    $this->updateOrderStatus(
-                        $orderId,
-                        OrderInterface::STATUS_CANCELLED,
-                        sprintf('Transaction cancellation status: %s.', $transaction['state'])
-                    );
-                    break;
-                case TransactionInterface::STATE_FAILED:
-                    $message = $transaction['failedReason'] ?? 'Cancellation is failed.';
-                    throw new Exception($message);
-                default:
-                    throw new Exception('Cancellation is failed.');
+            if (is_array($transaction)) {
+                $transaction = new Transaction($transaction);
             }
+
+            $this->saveTransaction($orderId, $transaction);
+            $this->processTransaction($orderId, $transaction);
 
             return new Response($result);
         } catch (ClientException $e) {
@@ -411,16 +373,15 @@ trait OrderAction
             return $this->refundCheckout($orderId, $amount, $vatAmount, $order->getItems());
         }
 
+        // Use the invoice method if possible
+        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_INVOICE) {
+            // @todo Should we use different credentials?
+            return $this->refundInvoice($orderId, $amount, $vatAmount);
+        }
+
         $paymentId = $order->getPaymentId();
         if (empty($paymentId)) {
             throw new Exception('Unable to get payment ID');
-        }
-
-        // Checkout method can use the Invoice method
-        $info = $this->fetchPaymentInfo($paymentId);
-        if ($info['payment']['instrument'] === 'Invoice') {
-            // @todo Should we use different credentials?
-            return $this->refundInvoice($orderId, $amount, $vatAmount);
         }
 
         $transactionData = new TransactionReversal();
@@ -448,53 +409,14 @@ trait OrderAction
             $result = $responseService->getResponseData();
 
             // Save transaction
+            /** @var Transaction $transaction */
             $transaction = $result['reversal']['transaction'];
-            $this->saveTransaction($orderId, $transaction);
-
-            switch ($transaction['state']) {
-                case TransactionInterface::STATE_COMPLETED:
-                    $info = $this->fetchPaymentInfo($paymentId);
-
-                    // Check if the payment was refund fully
-                    $isFullRefund = false;
-                    if (!isset($info['payment']['remainingReversalAmount'])) {
-                        // Failback if `remainingReversalAmount` is missing
-                        if (bccomp($order->getAmount(), $amount, 2) === 0) {
-                            $isFullRefund = true;
-                        }
-                    } elseif ((int) $info['payment']['remainingReversalAmount'] === 0) {
-                        $isFullRefund = true;
-                    }
-
-                    if ($isFullRefund) {
-                        $this->updateOrderStatus(
-                            $orderId,
-                            OrderInterface::STATUS_REFUNDED,
-                            sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state']),
-                            $transaction['number']
-                        );
-                    } else {
-                        $this->addOrderNote(
-                            $orderId,
-                            sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state'])
-                        );
-                    }
-
-                    break;
-                case TransactionInterface::STATE_INITIALIZED:
-                case TransactionInterface::STATE_AWAITING_ACTIVITY:
-                    $this->addOrderNote(
-                        $orderId,
-                        sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state'])
-                    );
-
-                    break;
-                case TransactionInterface::STATE_FAILED:
-                    $message = $transaction['failedReason'] ?? 'Refund is failed.';
-                    throw new Exception($message);
-                default:
-                    throw new Exception('Refund is failed.');
+            if (is_array($transaction)) {
+                $transaction = new Transaction($transaction);
             }
+
+            $this->saveTransaction($orderId, $transaction);
+            $this->processTransaction($orderId, $transaction);
 
             return new Response($result);
         } catch (ClientException $e) {
@@ -725,6 +647,13 @@ trait OrderAction
             throw new InvalidArgumentException('Invalid a transaction parameter');
         }
 
+        // Get Payment ID
+        $paymentId = $order->getPaymentId();
+        if (empty($paymentId) && $order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+            $paymentId = $this->getPaymentIdByPaymentOrder($order->getPaymentOrderId());
+            $order->setPaymentId($paymentId);
+        }
+
         // Apply action
         switch ($transaction->getType()) {
             case TransactionInterface::TYPE_VERIFICATION:
@@ -796,14 +725,28 @@ trait OrderAction
                 }
 
                 if ($transaction->isPending()) {
+                    $this->addOrderNote(
+                        $orderId,
+                        sprintf(
+                            'Authorization is pending. Amount: %s. Transaction: %s',
+                            $transaction->getAmount() / 100,
+                            $transaction->getNumber()
+                        )
+                    );
+
+                    break;
+                }
+
+                if ($transaction->isInitialized() || $transaction->isAwaitingActivity()) {
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_AUTHORIZED,
                         sprintf(
-                            'Authorization is pending. Transaction: %s.',
+                            'Authorization is %s. Amount: %s. Transaction: %s',
+                            $transaction->getState(),
+                            $transaction->getAmount() / 100,
                             $transaction->getNumber()
-                        ),
-                        $transaction->getNumber()
+                        )
                     );
 
                     break;
@@ -864,26 +807,75 @@ trait OrderAction
                     break;
                 }
 
-                if ($transaction->isPending()) {
+                if ($transaction->isInitialized() || $transaction->isAwaitingActivity()) {
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_AUTHORIZED,
                         sprintf(
-                            'Capture is pending. Transaction: %s',
+                            'Capture is %s. Amount: %s. Transaction: %s',
+                            $transaction->getState(),
+                            $transaction->getAmount() / 100,
                             $transaction->getNumber()
-                        ),
-                        $transaction->getNumber()
+                        )
                     );
 
                     break;
                 }
 
-                $this->updateOrderStatus(
-                    $orderId,
-                    OrderInterface::STATUS_CAPTURED,
-                    sprintf('Payment has been captured. Transaction: %s', $transaction->getNumber()),
-                    $transaction->getNumber()
-                );
+                if ($transaction->isPending()) {
+                    $this->addOrderNote(
+                        $orderId,
+                        sprintf(
+                            'Capture is pending. Amount: %s. Transaction: %s',
+                            $transaction->getAmount() / 100,
+                            $transaction->getNumber()
+                        )
+                    );
+
+                    break;
+                }
+
+                if ($transaction->isCompleted()) {
+                    // Fetch payment info
+                    if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+                        $paymentInfo = $this->fetchPaymentInfo($order->getPaymentOrderId());
+                        $paymentBody = $paymentInfo['paymentOrder'];
+                    } else {
+                        $paymentInfo = $this->fetchPaymentInfo($order->getPaymentId());
+                        $paymentBody = $paymentInfo['payment'];
+                    }
+
+                    // Check if the payment was captured fully
+                    // `remainingCaptureAmount` is missing if the payment was captured fully
+                    $isFullCapture = false;
+                    if (!isset($paymentBody['remainingCaptureAmount'])) {
+                        $isFullCapture = true;
+                    }
+
+                    // Update order status
+                    if ($isFullCapture) {
+                        $this->updateOrderStatus(
+                            $orderId,
+                            OrderInterface::STATUS_CAPTURED,
+                            sprintf(
+                                'Payment has been captured. Transaction: %s. Amount: %s',
+                                $transaction->getNumber(),
+                                $transaction->getAmount() / 100
+                            ),
+                            $transaction->getNumber()
+                        );
+                    } else {
+                        $this->addOrderNote(
+                            $orderId,
+                            sprintf(
+                                'Payment has been partially captured: Transaction: %s. Amount: %s',
+                                $transaction->getNumber(),
+                                $transaction->getAmount() / 100
+                            )
+                        );
+                    }
+                }
+
                 break;
             case TransactionInterface::TYPE_CANCELLATION:
                 if ($transaction->isFailed()) {
@@ -896,6 +888,20 @@ trait OrderAction
                             $transaction->getFailedDetails()
                         ),
                         $transaction->getNumber()
+                    );
+
+                    break;
+                }
+
+                if ($transaction->isInitialized() || $transaction->isAwaitingActivity()) {
+                    $this->updateOrderStatus(
+                        $orderId,
+                        OrderInterface::STATUS_CANCELLED,
+                        sprintf(
+                            'Cancellation is %s. Transaction ID: %s',
+                            $transaction->getState(),
+                            $transaction->getNumber()
+                        )
                     );
 
                     break;
@@ -915,12 +921,15 @@ trait OrderAction
                     break;
                 }
 
-                $this->updateOrderStatus(
-                    $orderId,
-                    OrderInterface::STATUS_CAPTURED,
-                    sprintf('Payment has been cancelled. Transaction: %s', $transaction->getNumber()),
-                    $transaction->getNumber()
-                );
+                if ($transaction->isCompleted()) {
+                    $this->updateOrderStatus(
+                        $orderId,
+                        OrderInterface::STATUS_CANCELLED,
+                        sprintf('Payment has been cancelled. Transaction: %s', $transaction->getNumber()),
+                        $transaction->getNumber()
+                    );
+                }
+
                 break;
             case TransactionInterface::TYPE_REVERSAL:
                 if ($transaction->isFailed()) {
@@ -938,12 +947,27 @@ trait OrderAction
                     break;
                 }
 
+                if ($transaction->isInitialized() || $transaction->isAwaitingActivity()) {
+                    $this->addOrderNote(
+                        $orderId,
+                        sprintf(
+                            'Reversal is %s. Amount: %s. Transaction ID: %s',
+                            $transaction->getState(),
+                            $transaction->getAmount() / 100,
+                            $transaction->getNumber()
+                        )
+                    );
+
+                    break;
+                }
+
                 if ($transaction->isPending()) {
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_REFUNDED,
                         sprintf(
-                            'Reversal is pending. Transaction: %s',
+                            'Reversal is pending. Amount: %s, Transaction: %s',
+                            $transaction->getAmount() / 100,
                             $transaction->getNumber()
                         ),
                         $transaction->getNumber()
@@ -952,31 +976,53 @@ trait OrderAction
                     break;
                 }
 
-                // Check if the payment was refund fully
-                $isFullRefund = false;
-                $info = $this->fetchPaymentInfo($order->getPaymentId());
-                if (!isset($info['payment']['remainingReversalAmount'])) {
-                    // Failback if `remainingReversalAmount` is missing
-                    if (bccomp($order->getAmount(), $transaction->getAmount() / 100, 2) === 0) {
+                if ($transaction->isCompleted()) {
+                    // Fetch payment info
+                    if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+                        $paymentInfo = $this->fetchPaymentInfo($order->getPaymentOrderId());
+                        $paymentBody = $paymentInfo['paymentOrder'];
+                    } else {
+                        $paymentInfo = $this->fetchPaymentInfo($order->getPaymentId());
+                        $paymentBody = $paymentInfo['payment'];
+                    }
+
+                    // Check if the payment was refunded fully
+                    // `remainingReversalAmount` is missing if the payment was refunded fully
+                    $isFullRefund = false;
+                    if (!isset($paymentBody['remainingReversalAmount'])) {
                         $isFullRefund = true;
                     }
-                } elseif ((int) $info['payment']['remainingReversalAmount'] === 0) {
-                    $isFullRefund = true;
-                }
 
-                // Update order status
-                if ($isFullRefund) {
-                    $this->updateOrderStatus(
+                    // Create Credit Memo
+                    $this->createCreditMemo(
                         $orderId,
-                        OrderInterface::STATUS_REFUNDED,
-                        'Payment has been refunded.',
-                        $transaction->getNumber()
+                        $transaction->getAmount() / 100,
+                        $transaction->getNumber(),
+                        $transaction->getDescription()
                     );
-                } else {
-                    $this->addOrderNote(
-                        $orderId,
-                        sprintf('Refunded: %s. ', $transaction->getAmount() / 100)
-                    );
+
+                    // Update order status
+                    if ($isFullRefund) {
+                        $this->updateOrderStatus(
+                            $orderId,
+                            OrderInterface::STATUS_REFUNDED,
+                            sprintf(
+                                'Payment has been refunded. Transaction: %s. Amount: %s',
+                                $transaction->getNumber(),
+                                $transaction->getAmount() / 100
+                            ),
+                            $transaction->getNumber()
+                        );
+                    } else {
+                        $this->addOrderNote(
+                            $orderId,
+                            sprintf(
+                                'Payment has been partially refunded: Transaction: %s. Amount: %s',
+                                $transaction->getNumber(),
+                                $transaction->getAmount() / 100
+                            )
+                        );
+                    }
                 }
 
                 break;
@@ -996,6 +1042,29 @@ trait OrderAction
     {
         // Use the reference from the adapter if exists
         return $this->adapter->generatePayeeReference($orderId);
+    }
+
+    /**
+     * Create Credit Memo.
+     *
+     * @param mixed $orderId
+     * @param float $amount
+     * @param mixed $transactionId
+     * @param string $description
+     */
+    public function createCreditMemo($orderId, $amount, $transactionId, $description)
+    {
+        try {
+            $this->adapter->createCreditMemo($orderId, $amount, $transactionId, $description);
+        } catch (Exception $e) {
+            $this->addOrderNote(
+                $orderId,
+                sprintf(
+                    'Unable to create credit memo. %s',
+                    $e->getMessage()
+                )
+            );
+        }
     }
 
     /**

@@ -205,4 +205,16 @@ interface PaymentAdapterInterface
      * @return string
      */
     public function generatePayeeReference($orderId);
+
+    /**
+     * Create Credit Memo.
+     *
+     * @param mixed $orderId
+     * @param float $amount
+     * @param mixed $transactionId
+     * @param string $description
+     *
+     * @throws Exception
+     */
+    public function createCreditMemo($orderId, $amount, $transactionId, $description);
 }

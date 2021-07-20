@@ -4,11 +4,10 @@ namespace SwedbankPay\Core\Library\Methods;
 
 use SwedbankPay\Api\Service\Paymentorder\Resource\Collection\PaymentorderItemsCollection;
 use SwedbankPay\Core\Api\Response;
+use SwedbankPay\Core\Api\Transaction;
 use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
 use SwedbankPay\Core\Order;
-use SwedbankPay\Core\OrderInterface;
-use SwedbankPay\Core\Api\TransactionInterface;
 use SwedbankPay\Core\OrderItemInterface;
 
 use SwedbankPay\Api\Client\Exception as ClientException;
@@ -25,12 +24,11 @@ use SwedbankPay\Api\Service\Paymentorder\Request\Recur;
 use SwedbankPay\Api\Service\Paymentorder\Resource\PaymentorderObject;
 use SwedbankPay\Api\Service\Paymentorder\Resource\PaymentorderRiskIndicator;
 use SwedbankPay\Api\Service\Data\ResponseInterface as ResponseServiceInterface;
-use SwedbankPay\Api\Service\Paymentorder\Transaction\Resource\Request\Transaction;
+use SwedbankPay\Api\Service\Paymentorder\Transaction\Resource\Request\Transaction as TransactionData;
 use SwedbankPay\Api\Service\Paymentorder\Transaction\Resource\Request\TransactionObject;
 use SwedbankPay\Api\Service\Paymentorder\Transaction\Request\TransactionCapture;
 use SwedbankPay\Api\Service\Paymentorder\Transaction\Request\TransactionCancel;
 use SwedbankPay\Api\Service\Paymentorder\Transaction\Request\TransactionReversal;
-use SwedbankPay\Framework\DataObjectCollectionItem;
 
 trait Checkout
 {
@@ -525,7 +523,7 @@ trait Checkout
             $orderItems->addItem($orderItem);
         }
 
-        $transactionData = new Transaction();
+        $transactionData = new TransactionData();
         $transactionData
             ->setAmount((int)bcmul(100, $amount))
             ->setVatAmount((int)bcmul(100, $vatAmount))
@@ -552,31 +550,14 @@ trait Checkout
             $result = $responseService->getResponseData();
 
             // Save transaction
+            /** @var Transaction $transaction */
             $transaction = $result['capture']['transaction'];
-            $this->saveTransaction($orderId, $transaction);
-
-            switch ($transaction['state']) {
-                case TransactionInterface::STATE_COMPLETED:
-                    $this->updateOrderStatus(
-                        $orderId,
-                        OrderInterface::STATUS_CAPTURED,
-                        sprintf('Payment has been captured. Amount: %s', $amount),
-                        $transaction['number']
-                    );
-                    break;
-                case TransactionInterface::STATE_INITIALIZED:
-                    $this->updateOrderStatus(
-                        $orderId,
-                        OrderInterface::STATUS_AUTHORIZED,
-                        sprintf('Transaction capture status: %s. Amount: %s', $transaction['state'], $amount)
-                    );
-                    break;
-                case TransactionInterface::STATE_FAILED:
-                    $message = $transaction['failedReason'] ?? 'Capture is failed.';
-                    throw new Exception($message);
-                default:
-                    throw new Exception('Capture is failed.');
+            if (is_array($transaction)) {
+                $transaction = new Transaction($transaction);
             }
+
+            $this->saveTransaction($orderId, $transaction);
+            $this->processTransaction($orderId, $transaction);
 
             return new Response($result);
         } catch (ClientException $e) {
@@ -625,7 +606,7 @@ trait Checkout
             throw new Exception('Unable to get the payment order ID');
         }
 
-        $transactionData = new Transaction();
+        $transactionData = new TransactionData();
         $transactionData
             ->setDescription(sprintf('Cancellation for Order #%s', $order->getOrderId()))
             ->setPayeeReference($this->generatePayeeReference($orderId));
@@ -649,32 +630,14 @@ trait Checkout
             $result = $responseService->getResponseData();
 
             // Save transaction
+            /** @var Transaction $transaction */
             $transaction = $result['cancellation']['transaction'];
-            $this->saveTransaction($orderId, $transaction);
-
-            switch ($transaction['state']) {
-                case TransactionInterface::STATE_COMPLETED:
-                    $this->updateOrderStatus(
-                        $orderId,
-                        OrderInterface::STATUS_CANCELLED,
-                        'Transaction is cancelled.',
-                        $transaction['number']
-                    );
-                    break;
-                case TransactionInterface::STATE_INITIALIZED:
-                case TransactionInterface::STATE_AWAITING_ACTIVITY:
-                    $this->updateOrderStatus(
-                        $orderId,
-                        OrderInterface::STATUS_CANCELLED,
-                        sprintf('Transaction cancellation status: %s.', $transaction['state'])
-                    );
-                    break;
-                case TransactionInterface::STATE_FAILED:
-                    $message = $transaction['failedReason'] ?? 'Cancellation is failed.';
-                    throw new Exception($message);
-                default:
-                    throw new Exception('Capture is failed.');
+            if (is_array($transaction)) {
+                $transaction = new Transaction($transaction);
             }
+
+            $this->saveTransaction($orderId, $transaction);
+            $this->processTransaction($orderId, $transaction);
 
             return new Response($result);
         } catch (ClientException $e) {
@@ -759,7 +722,7 @@ trait Checkout
             $vatAmount = $vatAmount / 100;
         }
 
-        $transactionData = new Transaction();
+        $transactionData = new TransactionData();
         $transactionData
             ->setAmount((int)bcmul(100, $amount))
             ->setVatAmount((int)bcmul(100, $vatAmount))
@@ -787,53 +750,14 @@ trait Checkout
             $result = $responseService->getResponseData();
 
             // Save transaction
+            /** @var Transaction $transaction */
             $transaction = $result['reversal']['transaction'];
-            $this->saveTransaction($orderId, $transaction);
-
-            switch ($transaction['state']) {
-                case TransactionInterface::STATE_COMPLETED:
-                    $info = $this->fetchPaymentInfo($paymentOrderId);
-
-                    // Check if the payment was refund fully
-                    $isFullRefund = false;
-                    if (!isset($info['paymentOrder']['remainingReversalAmount'])) {
-                        // Failback if `remainingReversalAmount` is missing
-                        if (bccomp($order->getAmount(), $amount, 2) === 0) {
-                            $isFullRefund = true;
-                        }
-                    } elseif ((int) $info['paymentOrder']['remainingReversalAmount'] === 0) {
-                        $isFullRefund = true;
-                    }
-
-                    if ($isFullRefund) {
-                        $this->updateOrderStatus(
-                            $orderId,
-                            OrderInterface::STATUS_REFUNDED,
-                            sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state']),
-                            $transaction['number']
-                        );
-                    } else {
-                        $this->addOrderNote(
-                            $orderId,
-                            sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state'])
-                        );
-                    }
-
-                    break;
-                case TransactionInterface::STATE_INITIALIZED:
-                case TransactionInterface::STATE_AWAITING_ACTIVITY:
-                    $this->addOrderNote(
-                        $orderId,
-                        sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state'])
-                    );
-
-                    break;
-                case TransactionInterface::STATE_FAILED:
-                    $message = $transaction['failedReason'] ?? 'Refund is failed.';
-                    throw new Exception($message);
-                default:
-                    throw new Exception('Refund is failed.');
+            if (is_array($transaction)) {
+                $transaction = new Transaction($transaction);
             }
+
+            $this->saveTransaction($orderId, $transaction);
+            $this->processTransaction($orderId, $transaction);
 
             return new Response($result);
         } catch (ClientException $e) {
