@@ -72,4 +72,10 @@ class OrderActionTest extends TestCase
         $result = $this->core->processTransaction(1, $transaction);
         $this->assertEquals(null, $result);
     }
+
+    public function testCreateCreditMemo()
+    {
+        $this->expectException(Exception::class);
+        $this->core->createCreditMemo(1, 123, 123, 'Test refund');
+    }
 }
