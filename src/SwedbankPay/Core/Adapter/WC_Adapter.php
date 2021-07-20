@@ -1045,7 +1045,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
     public function createCreditMemo($orderId, $amount, $transactionId, $description)
     {
         // Prevent refund credit memo creation through Callback
-        if (get_transient( 'sb_refund_block_' . $orderId)) {
+        if (get_transient('sb_refund_block_' . $orderId)) {
             delete_transient('sb_refund_block_' . $orderId);
             return;
         }
