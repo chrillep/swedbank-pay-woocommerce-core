@@ -991,6 +991,39 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 )
             );
 
+            // Assign payment token and order meta to subscription if applicable
+	        if (function_exists('wcs_order_contains_subscription') &&
+	            wcs_order_contains_subscription($order)
+	        ) {
+		        $subscriptions = wcs_get_subscriptions_for_order($orderId, array('order_type' => 'parent'));
+		        foreach ($subscriptions as $subscription) {
+		        	// Add payment meta
+		        	$paymentId = $order->get_meta('_payex_payment_id');
+		        	$paymentOrderId = $order->get_meta('_payex_paymentorder_id');
+
+			        /** @var \WC_Subscription $subscription */
+			        if (!empty($paymentId)) {
+				        $subscription->update_meta_data('_payex_payment_id', $paymentId);
+			        }
+
+			        if (!empty($paymentOrderId)) {
+				        $subscription->update_meta_data('_payex_paymentorder_id', $paymentOrderId);
+			        }
+
+			        // Add payment token
+			        $subscription->add_payment_token( $token );
+			        $subscription->add_order_note(
+				        sprintf(
+					        __( 'Card: %s', 'woocommerce' ),
+					        strip_tags( $token->get_display_name() )
+				        )
+			        );
+
+			        $subscription->save_meta_data();
+			        $subscription->save();
+		        }
+	        }
+
             // Activate subscription if this is WC_Subscriptions
             if (!$order->is_paid() &&
                 ((function_exists('wcs_order_contains_subscription') &&
