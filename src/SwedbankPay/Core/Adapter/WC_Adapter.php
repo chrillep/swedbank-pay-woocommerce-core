@@ -1011,11 +1011,11 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                     }
 
                     // Add payment token
-                    $subscription->add_payment_token( $token );
+                    $subscription->add_payment_token($token);
                     $subscription->add_order_note(
                         sprintf(
-                            __( 'Card: %s', 'woocommerce' ),
-                            strip_tags( $token->get_display_name() )
+                            __('Card: %s', 'woocommerce'),
+                            strip_tags($token->get_display_name())
                         )
                     );
 
