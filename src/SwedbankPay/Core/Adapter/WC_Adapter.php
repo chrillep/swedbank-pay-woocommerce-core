@@ -24,6 +24,7 @@ use WC_Order_Item_Fee;
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.ExcessiveClassLength)
  * @SuppressWarnings(PHPMD.TooManyMethods)
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 // phpcs:ignore
 class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
@@ -654,7 +655,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         if ($transactionNumber) {
             $transactions = (array) $order->get_meta('_sb_transactions');
             if (in_array($transactionNumber, $transactions)) {
-                $this->log('info', 'Skip order status update', [$orderId, $status, $transactionNumber]);
+                $this->log('info', sprintf('Skip order status update #%s to %s', $orderId, $status));
                 return;
             }
 
@@ -990,6 +991,39 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 )
             );
 
+            // Assign payment token and order meta to subscription if applicable
+            if (function_exists('wcs_order_contains_subscription') &&
+                wcs_order_contains_subscription($order)
+            ) {
+                $subscriptions = wcs_get_subscriptions_for_order($orderId, array('order_type' => 'parent'));
+                foreach ($subscriptions as $subscription) {
+                    // Add payment meta
+                    $paymentId = $order->get_meta('_payex_payment_id');
+                    $paymentOrderId = $order->get_meta('_payex_paymentorder_id');
+
+                    /** @var \WC_Subscription $subscription */
+                    if (!empty($paymentId)) {
+                        $subscription->update_meta_data('_payex_payment_id', $paymentId);
+                    }
+
+                    if (!empty($paymentOrderId)) {
+                        $subscription->update_meta_data('_payex_paymentorder_id', $paymentOrderId);
+                    }
+
+                    // Add payment token
+                    $subscription->add_payment_token($token);
+                    $subscription->add_order_note(
+                        sprintf(
+                            __('Card: %s', 'woocommerce'),
+                            strip_tags($token->get_display_name())
+                        )
+                    );
+
+                    $subscription->save_meta_data();
+                    $subscription->save();
+                }
+            }
+
             // Activate subscription if this is WC_Subscriptions
             if (!$order->is_paid() &&
                 ((function_exists('wcs_order_contains_subscription') &&
@@ -1029,6 +1063,92 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         $reference = $orderId . 'x' . substr(implode('', $arr), 0, 5);
 
         return apply_filters('swedbank_pay_payee_reference', $reference, $orderId);
+    }
+
+    /**
+     * Create Credit Memo.
+     *
+     * @param mixed $orderId
+     * @param float $amount
+     * @param mixed $transactionId
+     * @param string $description
+     *
+     * @throws Exception
+     * @SuppressWarnings(PHPMD.ElseExpression)
+     */
+    public function createCreditMemo($orderId, $amount, $transactionId, $description)
+    {
+        // Prevent refund credit memo creation through Callback
+        if (get_transient('sb_refund_block_' . $orderId)) {
+            delete_transient('sb_refund_block_' . $orderId);
+            return;
+        }
+
+        global $wpdb;
+
+        // Get refunds by transaction ID
+        if ($transactionId) {
+            $query = "
+                SELECT post_id FROM `{$wpdb->prefix}postmeta` postmeta
+                LEFT JOIN `{$wpdb->prefix}posts` AS posts ON postmeta.post_id = posts.ID
+                WHERE meta_key='_transaction_id' AND meta_value=%s AND posts.post_type='shop_order_refund';
+            ";
+
+            if ($wpdb->get_var($wpdb->prepare($query, $transactionId))) {
+                // Credit Memo is already exists
+                return;
+            }
+        } else {
+            // Get refunds by amount
+            $order = wc_get_order($orderId);
+            $refunds = $order->get_refunds();
+
+            foreach ($refunds as $refund) {
+                /** @var \WC_Order_Refund $refund */
+                if (bccomp($refund->get_amount(), $amount, 2) === 0) {
+                    // Credit Memo is already exists
+                    return;
+                }
+            }
+        }
+
+        // Create the refund
+        $refund = wc_create_refund(
+            array(
+                'order_id' => $orderId,
+                'amount' => $amount,
+                'reason' => $description,
+                'refund_payment' => false,
+                'restock_items'  => true,
+            )
+        );
+
+        if (is_wp_error($refund)) {
+            throw new Exception($refund->get_error_message(), 500);
+        }
+
+        if (!$refund) {
+            throw new Exception('Cannot create order refund, please try again.', 500);
+        }
+
+        if ($transactionId) {
+            $refund->update_meta_data('_transaction_id', $transactionId);
+            $refund->save_meta_data();
+        }
+
+        $this->log(
+            'info',
+            sprintf(
+                'Created Credit Memo for #%s. Refunded: %s. Transaction ID: %s. Description: %s',
+                $orderId,
+                $amount,
+                $transactionId,
+                $description
+            ),
+            [
+                $refund->get_id()
+            ]
+        );
     }
 
     /**

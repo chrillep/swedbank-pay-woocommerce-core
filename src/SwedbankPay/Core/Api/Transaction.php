@@ -111,6 +111,26 @@ class Transaction extends Data implements TransactionInterface
     }
 
     /**
+     * Is Initialized.
+     *
+     * @return bool
+     */
+    public function isInitialized()
+    {
+        return $this->getState() === self::STATE_INITIALIZED;
+    }
+
+    /**
+     * Is Awaiting Activity.
+     *
+     * @return bool
+     */
+    public function isAwaitingActivity()
+    {
+        return $this->getState() === self::STATE_AWAITING_ACTIVITY;
+    }
+
+    /**
      * Is Pending.
      *
      * @return bool

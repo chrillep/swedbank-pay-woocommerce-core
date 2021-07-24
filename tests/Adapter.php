@@ -8,6 +8,7 @@ use SwedbankPay\Core\OrderInterface;
 use SwedbankPay\Core\OrderItemInterface;
 use SwedbankPay\Core\Order\RiskIndicatorInterface;
 use SwedbankPay\Core\Order\PayeeInfoInterface;
+use SwedbankPay\Core\Exception;
 
 class Adapter extends PaymentAdapter implements PaymentAdapterInterface
 {
@@ -372,5 +373,21 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
         shuffle($arr);
 
         return $orderId . 'x' . substr(implode('', $arr), 0, 5);
+    }
+
+    /**
+     * Create Credit Memo.
+     *
+     * @param mixed $orderId
+     * @param float $amount
+     * @param mixed $transactionId
+     * @param string $description
+     *
+     * @throws Exception
+     * @SuppressWarnings(PHPMD.ElseExpression)
+     */
+    public function createCreditMemo($orderId, $amount, $transactionId, $description)
+    {
+        throw new Exception('createCreditMemo exception');
     }
 }

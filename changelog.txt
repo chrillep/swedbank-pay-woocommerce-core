@@ -1,3 +1,13 @@
+Version 4.1.0
+Added
+- Partial capture and refund
+- Added `createCreditMemo()` method
+- Subscriptions: add payment meta and tokens from parent order
+
+Changed
+- Improved `processTransaction()` method
+- Code optimization
+
 Version 4.0.4
 Added
 - `Problem` class

@@ -3,6 +3,7 @@
 namespace SwedbankPay\Core\Library\Methods;
 
 use SwedbankPay\Core\Api\Response;
+use SwedbankPay\Core\Api\Transaction;
 use SwedbankPay\Core\ConfigurationInterface;
 use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
@@ -337,27 +338,32 @@ trait Invoice
             $result = $responseService->getResponseData();
 
             // Save transaction
+            /** @var Transaction $transaction */
             $transaction = $result['capture']['transaction'];
+            if (is_array($transaction)) {
+                $transaction = new Transaction($transaction);
+            }
+
             $this->saveTransaction($orderId, $transaction);
 
-            switch ($transaction['state']) {
+            switch ($transaction->getState()) {
                 case TransactionInterface::STATE_COMPLETED:
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_CAPTURED,
                         sprintf('Payment has been captured. Amount: %s', $amount),
-                        $transaction['number']
+                        $transaction->getNumber()
                     );
                     break;
                 case TransactionInterface::STATE_INITIALIZED:
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_AUTHORIZED,
-                        sprintf('Transaction capture status: %s. Amount: %s', $transaction['state'], $amount)
+                        sprintf('Transaction capture status: %s. Amount: %s', $transaction->getState(), $amount)
                     );
                     break;
                 case TransactionInterface::STATE_FAILED:
-                    $message = $transaction['failedReason'] ?? 'Capture is failed.';
+                    $message = $transaction->getFailedDetails();
                     throw new Exception($message);
                 default:
                     throw new Exception('Capture is failed.');
@@ -436,16 +442,21 @@ trait Invoice
             $result = $responseService->getResponseData();
 
             // Save transaction
+            /** @var Transaction $transaction */
             $transaction = $result['cancellation']['transaction'];
+            if (is_array($transaction)) {
+                $transaction = new Transaction($transaction);
+            }
+
             $this->saveTransaction($orderId, $transaction);
 
-            switch ($transaction['state']) {
+            switch ($transaction->getState()) {
                 case TransactionInterface::STATE_COMPLETED:
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_CANCELLED,
                         'Transaction is cancelled.',
-                        $transaction['number']
+                        $transaction->getNumber()
                     );
                     break;
                 case TransactionInterface::STATE_INITIALIZED:
@@ -453,11 +464,11 @@ trait Invoice
                     $this->updateOrderStatus(
                         $orderId,
                         OrderInterface::STATUS_CANCELLED,
-                        sprintf('Transaction cancellation status: %s.', $transaction['state'])
+                        sprintf('Transaction cancellation status: %s.', $transaction->getState())
                     );
                     break;
                 case TransactionInterface::STATE_FAILED:
-                    $message = $transaction['failedReason'] ?? 'Cancellation is failed.';
+                    $message = $transaction->getFailedDetails();
 
                     throw new Exception($message);
                 default:
@@ -541,10 +552,15 @@ trait Invoice
             $result = $responseService->getResponseData();
 
             // Save transaction
+            /** @var Transaction $transaction */
             $transaction = $result['reversal']['transaction'];
+            if (is_array($transaction)) {
+                $transaction = new Transaction($transaction);
+            }
+
             $this->saveTransaction($orderId, $transaction);
 
-            switch ($transaction['state']) {
+            switch ($transaction->getState()) {
                 case TransactionInterface::STATE_COMPLETED:
                     $info = $this->fetchPaymentInfo($paymentId);
 
@@ -563,13 +579,13 @@ trait Invoice
                         $this->updateOrderStatus(
                             $orderId,
                             OrderInterface::STATUS_REFUNDED,
-                            sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state']),
-                            $transaction['number']
+                            sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction->getState()),
+                            $transaction->getNumber()
                         );
                     } else {
                         $this->addOrderNote(
                             $orderId,
-                            sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state'])
+                            sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction->getState())
                         );
                     }
 
@@ -578,12 +594,12 @@ trait Invoice
                 case TransactionInterface::STATE_AWAITING_ACTIVITY:
                     $this->addOrderNote(
                         $orderId,
-                        sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction['state'])
+                        sprintf('Refunded: %s. Transaction state: %s', $amount, $transaction->getState())
                     );
 
                     break;
                 case TransactionInterface::STATE_FAILED:
-                    $message = $transaction['failedReason'] ?? 'Refund is failed.';
+                    $message = $transaction->getFailedDetails();
                     throw new Exception($message);
                 default:
                     throw new Exception('Refund is failed.');
