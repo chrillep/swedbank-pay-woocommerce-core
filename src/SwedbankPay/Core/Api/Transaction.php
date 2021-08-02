@@ -98,16 +98,21 @@ class Transaction extends Data implements TransactionInterface
      */
     public function getFailedDetails()
     {
-        if ($this->hasData('problem')) {
+        if ($this->getData(self::PROBLEM)) {
             return $this->getProblem()->toString();
         }
 
         // Deprecated
-        return implode('; ', [
-            $this->getFailedReason(),
-            $this->getFailedErrorCode(),
-            $this->getFailedErrorDescription()
-        ]);
+        if (!empty($this->getFailedReason())) {
+            return implode('; ', [
+                $this->getFailedReason(),
+                $this->getFailedErrorCode(),
+                $this->getFailedErrorDescription()
+            ]);
+        }
+
+        // No details
+        return 'Transaction has been failed, no details';
     }
 
     /**
