@@ -1,3 +1,7 @@
+Version 4.1.1
+Changed
+- Add details of failed transactions
+
 Version 4.1.0
 Added
 - Partial capture and refund
