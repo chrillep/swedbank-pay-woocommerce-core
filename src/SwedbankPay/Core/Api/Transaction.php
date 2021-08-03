@@ -23,7 +23,6 @@ use SwedbankPay\Core\Data;
  * @method $this setAmount($value)
  * @method string getDescription()
  * @method $this setDescription($value)
- * @method $this setPayeeReference($value)
  */
 class Transaction extends Data implements TransactionInterface
 {
@@ -57,6 +56,18 @@ class Transaction extends Data implements TransactionInterface
     public function getVatAmount()
     {
         return $this->getData(self::VAT_AMOUNT);
+    }
+
+    /**
+     * Set Payee Reference.
+     *
+     * @param string $payeeReference
+     *
+     * @return $this
+     */
+    public function setPayeeReference($payeeReference)
+    {
+        return $this->setData(self::PAYEE_REFERENCE, $payeeReference);
     }
 
     /**
