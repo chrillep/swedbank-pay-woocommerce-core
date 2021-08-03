@@ -21,7 +21,6 @@ use SwedbankPay\Core\Data;
  * @method $this setNumber($value)
  * @method int getAmount()
  * @method $this setAmount($value)
- * @method $this setVatAmount($value)
  * @method string getDescription()
  * @method $this setDescription($value)
  * @method $this setPayeeReference($value)
@@ -36,6 +35,18 @@ class Transaction extends Data implements TransactionInterface
     public function __construct(array $data = [])
     {
         $this->setData($data);
+    }
+
+    /**
+     * Set VAT amount.
+     *
+     * @param mixed $vatAmount
+     *
+     * @return $this
+     */
+    public function setVatAmount($vatAmount)
+    {
+        return $this->setData(self::VAT_AMOUNT, $vatAmount);
     }
 
     /**
