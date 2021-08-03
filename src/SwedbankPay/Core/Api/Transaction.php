@@ -21,10 +21,8 @@ use SwedbankPay\Core\Data;
  * @method $this setNumber($value)
  * @method int getAmount()
  * @method $this setAmount($value)
- * @method $this setVatAmount($value)
  * @method string getDescription()
  * @method $this setDescription($value)
- * @method $this setPayeeReference($value)
  */
 class Transaction extends Data implements TransactionInterface
 {
@@ -39,6 +37,18 @@ class Transaction extends Data implements TransactionInterface
     }
 
     /**
+     * Set VAT amount.
+     *
+     * @param mixed $vatAmount
+     *
+     * @return $this
+     */
+    public function setVatAmount($vatAmount)
+    {
+        return $this->setData(self::VAT_AMOUNT, $vatAmount);
+    }
+
+    /**
      * Get VAT amount.
      *
      * @return string
@@ -46,6 +56,18 @@ class Transaction extends Data implements TransactionInterface
     public function getVatAmount()
     {
         return $this->getData(self::VAT_AMOUNT);
+    }
+
+    /**
+     * Set Payee Reference.
+     *
+     * @param string $payeeReference
+     *
+     * @return $this
+     */
+    public function setPayeeReference($payeeReference)
+    {
+        return $this->setData(self::PAYEE_REFERENCE, $payeeReference);
     }
 
     /**
@@ -98,16 +120,21 @@ class Transaction extends Data implements TransactionInterface
      */
     public function getFailedDetails()
     {
-        if ($this->hasData('problem')) {
+        if ($this->getData(self::PROBLEM)) {
             return $this->getProblem()->toString();
         }
 
         // Deprecated
-        return implode('; ', [
-            $this->getFailedReason(),
-            $this->getFailedErrorCode(),
-            $this->getFailedErrorDescription()
-        ]);
+        if (!empty($this->getFailedReason())) {
+            return implode('; ', [
+                $this->getFailedReason(),
+                $this->getFailedErrorCode(),
+                $this->getFailedErrorDescription()
+            ]);
+        }
+
+        // No details
+        return 'Transaction has been failed, no details';
     }
 
     /**
