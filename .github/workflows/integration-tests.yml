@@ -38,7 +38,7 @@ jobs:
           ACCESS_TOKEN_MOBILEPAY: ${{ secrets.ACCESS_TOKEN_MOBILEPAY }}
           PAYEE_ID_MOBILEPAY: ${{ secrets.PAYEE_ID_MOBILEPAY }}
         run: |
-          sed -i -e "s/~4.0/dev-master/g" ./composer.json
+          sed -i -e "s/~4.0/dev-main/g" ./composer.json
           composer install
           ./vendor/bin/phpunit --configuration=./tests/phpunit.xml --bootstrap=./tests/bootstrap.php ./tests/ --coverage-clover=coverage.xml
 
