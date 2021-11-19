@@ -28,4 +28,5 @@ interface OrderItemInterface
     const FIELD_VAT_PERCENT = 'vatPercent';
     const FIELD_AMOUNT = 'amount';
     const FIELD_VAT_AMOUNT = 'vatAmount';
+	const FIELD_RESTRICTED_TO_INSTRUMENTS = 'restrictedToInstruments';
 }

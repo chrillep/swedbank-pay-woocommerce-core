@@ -183,4 +183,26 @@ class OrderItem extends Data implements OrderItemInterface
     {
         return $this->setData(OrderItemInterface::FIELD_VAT_AMOUNT, $vat);
     }
+
+	/**
+	 * Get "Restricted To Instruments"
+	 *
+	 * @return array|null
+	 */
+	public function getRestrictedToInstruments()
+	{
+		return $this->getData(OrderItemInterface::FIELD_RESTRICTED_TO_INSTRUMENTS);
+	}
+
+	/**
+	 * Set "Restricted To Instruments"
+	 *
+	 * @param array $instruments
+	 *
+	 * @return $this
+	 */
+	public function setRestrictedToInstruments($instruments)
+	{
+		return $this->setData(OrderItemInterface::FIELD_RESTRICTED_TO_INSTRUMENTS, $instruments);
+	}
 }
