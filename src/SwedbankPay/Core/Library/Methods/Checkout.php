@@ -96,7 +96,7 @@ trait Checkout
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
                 ->setVatAmount($item->getVatAmount())
-	            ->setRestrictedToInstruments($item->getRestrictedToInstruments());
+                ->setRestrictedToInstruments($item->getRestrictedToInstruments());
 
             $orderItems->addItem($orderItem);
         }
@@ -331,7 +331,7 @@ trait Checkout
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
                 ->setVatAmount($item->getVatAmount())
-	            ->setRestrictedToInstruments($item->getRestrictedToInstruments());
+                ->setRestrictedToInstruments($item->getRestrictedToInstruments());
 
             $orderItems->addItem($orderItem);
         }
@@ -521,7 +521,7 @@ trait Checkout
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
                 ->setVatAmount($item->getVatAmount())
-	            ->setRestrictedToInstruments($item->getRestrictedToInstruments());
+                ->setRestrictedToInstruments($item->getRestrictedToInstruments());
 
             $orderItems->addItem($orderItem);
         }
@@ -718,7 +718,7 @@ trait Checkout
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
                 ->setVatAmount($item->getVatAmount())
-	            ->setRestrictedToInstruments($item->getRestrictedToInstruments());
+                ->setRestrictedToInstruments($item->getRestrictedToInstruments());
 
             $orderItems->addItem($orderItem);
 
