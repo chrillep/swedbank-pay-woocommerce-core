@@ -95,7 +95,8 @@ trait Checkout
                 ->setQuantityUnit($item->getQtyUnit())
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
-                ->setVatAmount($item->getVatAmount());
+                ->setVatAmount($item->getVatAmount())
+                ->setRestrictedToInstruments($item->getRestrictedToInstruments());
 
             $orderItems->addItem($orderItem);
         }
@@ -329,7 +330,8 @@ trait Checkout
                 ->setQuantityUnit($item->getQtyUnit())
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
-                ->setVatAmount($item->getVatAmount());
+                ->setVatAmount($item->getVatAmount())
+                ->setRestrictedToInstruments($item->getRestrictedToInstruments());
 
             $orderItems->addItem($orderItem);
         }
@@ -518,7 +520,8 @@ trait Checkout
                 ->setQuantityUnit($item->getQtyUnit())
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
-                ->setVatAmount($item->getVatAmount());
+                ->setVatAmount($item->getVatAmount())
+                ->setRestrictedToInstruments($item->getRestrictedToInstruments());
 
             $orderItems->addItem($orderItem);
         }
@@ -714,7 +717,8 @@ trait Checkout
                 ->setQuantityUnit($item->getQtyUnit())
                 ->setVatPercent($item->getVatPercent())
                 ->setAmount($item->getAmount())
-                ->setVatAmount($item->getVatAmount());
+                ->setVatAmount($item->getVatAmount())
+                ->setRestrictedToInstruments($item->getRestrictedToInstruments());
 
             $orderItems->addItem($orderItem);
 
