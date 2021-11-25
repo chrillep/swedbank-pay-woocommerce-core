@@ -38,10 +38,11 @@ jobs:
           ACCESS_TOKEN_MOBILEPAY: ${{ secrets.ACCESS_TOKEN_MOBILEPAY }}
           PAYEE_ID_MOBILEPAY: ${{ secrets.PAYEE_ID_MOBILEPAY }}
         run: |
-          sed -i -e "s/~4.0/dev-main/g" ./composer.json
-          composer install
-          ./vendor/bin/phpunit --configuration=./tests/phpunit.xml --bootstrap=./tests/bootstrap.php ./tests/ --coverage-clover=coverage.xml
-
+          if [ "$ACCESS_TOKEN" != "" ]; then
+            sed -i -e "s/~4.0/dev-main/g" ./composer.json
+            composer install
+            ./vendor/bin/phpunit --configuration=./tests/phpunit.xml --bootstrap=./tests/bootstrap.php ./tests/ --coverage-clover=coverage.xml
+          fi
       - name: Upload code coverage report to Codecov
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
