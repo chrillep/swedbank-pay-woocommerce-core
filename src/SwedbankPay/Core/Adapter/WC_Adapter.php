@@ -1049,6 +1049,19 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
     }
 
     /**
+     * Process transaction object.
+     *
+     * @param mixed $transactionObject
+     * @param mixed $orderId
+     *
+     * @return mixed
+     */
+    public function processTransactionObject($transactionObject, $orderId)
+    {
+        return apply_filters('swedbank_pay_transaction_object', $transactionObject, $orderId);
+    }
+
+    /**
      * Generate Payee Reference for Order.
      *
      * @param mixed $orderId

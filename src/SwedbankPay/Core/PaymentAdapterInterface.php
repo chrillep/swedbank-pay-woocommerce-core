@@ -198,6 +198,16 @@ interface PaymentAdapterInterface
     public function processPaymentObject($paymentObject, $orderId);
 
     /**
+     * Process transaction object.
+     *
+     * @param mixed $transactionObject
+     * @param mixed $orderId
+     *
+     * @return mixed
+     */
+    public function processTransactionObject($transactionObject, $orderId);
+
+    /**
      * Generate Payee Reference for Order.
      *
      * @param mixed $orderId

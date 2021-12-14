@@ -323,6 +323,9 @@ trait Invoice
         $transaction = new TransactionObject();
         $transaction->setTransaction($transactionData);
 
+        // Process transaction object
+        $transaction = $this->adapter->processTransactionObject($transaction, $orderId);
+
         $requestService = new CreateCapture($transaction);
         $requestService->setClient($this->client);
         $requestService->setPaymentId($paymentId);
@@ -425,6 +428,9 @@ trait Invoice
 
         $transaction = new TransactionObject();
         $transaction->setTransaction($transactionData);
+
+        // Process transaction object
+        $transaction = $this->adapter->processTransactionObject($transaction, $orderId);
 
         $requestService = new CreateCancellation($transaction);
         $requestService
@@ -535,6 +541,9 @@ trait Invoice
 
         $transaction = new TransactionObject();
         $transaction->setTransaction($transactionData);
+
+        // Process transaction object
+        $transaction = $this->adapter->processTransactionObject($transaction, $orderId);
 
         $requestService = new CreateReversal($transaction);
         $requestService

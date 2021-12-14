@@ -537,6 +537,9 @@ trait Checkout
         $transaction = new TransactionObject();
         $transaction->setTransaction($transactionData);
 
+        // Process transaction object
+        $transaction = $this->adapter->processTransactionObject($transaction, $orderId);
+
         $requestService = new TransactionCapture($transaction);
         $requestService->setClient($this->client)
                        ->setPaymentOrderId($paymentOrderId);
@@ -616,6 +619,9 @@ trait Checkout
 
         $transaction = new TransactionObject();
         $transaction->setTransaction($transactionData);
+
+        // Process transaction object
+        $transaction = $this->adapter->processTransactionObject($transaction, $orderId);
 
         $requestService = new TransactionCancel($transaction);
         $requestService->setClient($this->client)
@@ -737,6 +743,9 @@ trait Checkout
 
         $transaction = new TransactionObject();
         $transaction->setTransaction($transactionData);
+
+        // Process transaction object
+        $transaction = $this->adapter->processTransactionObject($transaction, $orderId);
 
         $requestService = new TransactionReversal($transaction);
         $requestService->setClient($this->client)

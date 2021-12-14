@@ -361,6 +361,19 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
     }
 
     /**
+     * Process transaction object.
+     *
+     * @param mixed $transactionObject
+     * @param mixed $orderId
+     *
+     * @return mixed
+     */
+    public function processTransactionObject($transactionObject, $orderId)
+    {
+        return $transactionObject;
+    }
+
+    /**
      * Generate Payee Reference for Order.
      *
      * @param mixed $orderId
