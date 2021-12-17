@@ -1,3 +1,8 @@
+Version 5.0.0
+Added
+- Implemented Adapter::processTransactionObject() method to handle capture/cancel/refund actions
+- WC Adapter: add wp filter `swedbank_pay_transaction_object`
+
 Version 4.2.0
 Added
 - Add RestrictedToInstruments
