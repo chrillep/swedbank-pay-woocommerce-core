@@ -210,6 +210,9 @@ trait OrderAction
         $transaction = new TransactionObject();
         $transaction->setTransaction($transactionData);
 
+        // Process transaction object
+        $transaction = $this->adapter->processTransactionObject($transaction, $orderId);
+
         $requestService = new CreateCapture($transaction);
         $requestService->setClient($this->client);
         $requestService->setPaymentId($paymentId);
@@ -299,6 +302,9 @@ trait OrderAction
 
         $transaction = new TransactionObject();
         $transaction->setTransaction($transactionData);
+
+        // Process transaction object
+        $transaction = $this->adapter->processTransactionObject($transaction, $orderId);
 
         $requestService = new CreateCancellation($transaction);
         $requestService->setClient($this->client);
@@ -393,6 +399,9 @@ trait OrderAction
 
         $transaction = new TransactionObject();
         $transaction->setTransaction($transactionData);
+
+        // Process transaction object
+        $transaction = $this->adapter->processTransactionObject($transaction, $orderId);
 
         $requestService = new CreateReversal($transaction);
         $requestService->setClient($this->client);
