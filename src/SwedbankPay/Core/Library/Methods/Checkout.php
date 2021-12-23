@@ -705,8 +705,8 @@ trait Checkout
                 $item = new \SwedbankPay\Core\OrderItem($item);
             }
 
-            $amount += $item->getAmount();
-            $vatAmount += $item->getVatAmount();
+            $amount += bcdiv($item->getAmount(), 100);
+            $vatAmount += bcdiv($item->getVatAmount(), 100);
 
             $orderItem = new OrderItem();
             $orderItem
@@ -727,9 +727,6 @@ trait Checkout
                 ->setRestrictedToInstruments($item->getRestrictedToInstruments());
 
             $orderItems->addItem($orderItem);
-
-            $amount = $amount / 100;
-            $vatAmount = $vatAmount / 100;
         }
 
         $transactionData = new TransactionData();
