@@ -111,7 +111,6 @@ trait Checkout
 
         $paymentOrder = new Paymentorder();
         $paymentOrder
-            ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
             ->setOperation(self::OPERATION_PURCHASE)
             ->setCurrency($order->getCurrency())
             ->setAmount($order->getAmountInCents())
@@ -226,7 +225,6 @@ trait Checkout
 
         $paymentOrder = new Paymentorder();
         $paymentOrder
-            ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
             ->setOperation(self::OPERATION_VERIFY)
             ->setCurrency($order->getCurrency())
             ->setDescription('Verification of Credit Card')
@@ -338,7 +336,6 @@ trait Checkout
 
         $paymentOrder = new Paymentorder();
         $paymentOrder
-            ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
             ->setOperation(self::OPERATION_RECUR)
             ->setRecurrenceToken($recurrenceToken)
             ->setIntent(

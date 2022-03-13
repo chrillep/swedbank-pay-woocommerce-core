@@ -118,7 +118,8 @@ class Core implements
         $client = new Client();
         $client->setAccessToken($this->configuration->getAccessToken())
             ->setPayeeId($this->configuration->getPayeeId())
-            ->setMode($this->configuration->getMode() === true ? Client::MODE_TEST : Client::MODE_PRODUCTION);
+            ->setMode($this->configuration->getMode() === true ? Client::MODE_TEST : Client::MODE_PRODUCTION)
+	        ->setUserAgent($this->adapter->getInitiatingSystemUserAgent());
 
         return $client;
     }
