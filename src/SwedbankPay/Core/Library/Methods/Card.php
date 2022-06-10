@@ -77,7 +77,6 @@ trait Card
 
         $payment = new PaymentPurchase();
         $payment
-            ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
             ->setOperation(self::OPERATION_PURCHASE)
             ->setIntent(
                 $this->configuration->getAutoCapture() ?
@@ -192,7 +191,6 @@ trait Card
 
         $payment = new PaymentVerify();
         $payment
-            ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
             ->setOperation(self::OPERATION_VERIFY)
             ->setIntent(
                 $this->configuration->getAutoCapture() ?
@@ -284,7 +282,6 @@ trait Card
 
         $payment = new PaymentRecur();
         $payment
-            ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
             ->setOperation(self::OPERATION_RECUR)
             ->setIntent(
                 $this->configuration->getAutoCapture() ? self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION
@@ -375,7 +372,6 @@ trait Card
 
         $payment = new PaymentRecur();
         $payment
-            ->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
             ->setOperation(self::OPERATION_UNSCHEDULED_PURCHASE)
             ->setIntent(
                 $this->configuration->getAutoCapture() ?

@@ -112,13 +112,25 @@ class Core implements
     /**
      * @return Client
      * @throws \SwedbankPay\Api\Client\Exception
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function getClient()
     {
         $client = new Client();
+
+        $userAgent = $client->getUserAgent();
+        if (method_exists($this->adapter, 'getInitiatingSystemUserAgent')) {
+            $userAgent .= ' ' . $this->adapter->getInitiatingSystemUserAgent();
+        }
+
+        if (isset($_SERVER['HTTP_USER_AGENT'])) {
+            $userAgent .= $_SERVER['HTTP_USER_AGENT'];
+        }
+
         $client->setAccessToken($this->configuration->getAccessToken())
             ->setPayeeId($this->configuration->getPayeeId())
-            ->setMode($this->configuration->getMode() === true ? Client::MODE_TEST : Client::MODE_PRODUCTION);
+            ->setMode($this->configuration->getMode() === true ? Client::MODE_TEST : Client::MODE_PRODUCTION)
+            ->setUserAgent($userAgent);
 
         return $client;
     }

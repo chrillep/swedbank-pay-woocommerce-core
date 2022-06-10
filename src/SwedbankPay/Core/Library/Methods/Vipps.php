@@ -69,8 +69,7 @@ trait Vipps
         $metadata->setData('order_id', $order->getOrderId());
 
         $payment = new Payment();
-        $payment->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
-            ->setOperation(self::OPERATION_PURCHASE)
+        $payment->setOperation(self::OPERATION_PURCHASE)
             ->setIntent(self::INTENT_AUTHORIZATION)
             ->setCurrency($order->getCurrency())
             ->setDescription($order->getDescription())

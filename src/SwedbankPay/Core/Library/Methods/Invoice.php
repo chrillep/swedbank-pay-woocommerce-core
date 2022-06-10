@@ -74,8 +74,7 @@ trait Invoice
         $metadata->setData('order_id', $order->getOrderId());
 
         $payment = new Payment();
-        $payment->setInitiatingSystemUserAgent($this->adapter->getInitiatingSystemUserAgent())
-            ->setOperation(self::OPERATION_FINANCING_CONSUMER)
+        $payment->setOperation(self::OPERATION_FINANCING_CONSUMER)
             ->setIntent(self::INTENT_AUTHORIZATION)
             ->setCurrency($order->getCurrency())
             ->setDescription($order->getDescription())
