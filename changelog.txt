@@ -1,3 +1,7 @@
+Version 5.2.0
+Changed
+- Changed method parameters `refundCheckout($orderId, array $items = [])``
+
 Version 5.1.0
 Changed
 - Fix User Agent string

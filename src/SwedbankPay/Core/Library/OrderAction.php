@@ -376,7 +376,7 @@ trait OrderAction
 
         // Use the checkout method if possible
         if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
-            return $this->refundCheckout($orderId, $amount, $vatAmount, $order->getItems());
+            return $this->refundCheckout($orderId, $order->getItems());
         }
 
         // Use the invoice method if possible

@@ -665,9 +665,7 @@ trait Checkout
      * Refund Checkout.
      *
      * @param mixed $orderId
-     * @param int|float|null $amount
-     * @param int|float $vatAmount
-     * @param array $items
+     * @param \SwedbankPay\Core\OrderItem[] $items
      *
      * @return Response
      * @throws Exception
@@ -677,7 +675,7 @@ trait Checkout
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @SuppressWarnings(PHPMD.MissingImport)
      */
-    public function refundCheckout($orderId, $amount = null, $vatAmount = 0, array $items = [])
+    public function refundCheckout($orderId, array $items = [])
     {
         /** @var Order $order */
         $order = $this->getOrder($orderId);
