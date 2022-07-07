@@ -661,7 +661,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 
             $transactions[] = $transactionNumber;
 
-            $order->update_meta_data('_transaction_id', $transactionNumber);
+            $order->set_transaction_id($transactionNumber);
             $order->update_meta_data('_sb_transactions', $transactions);
             $order->save();
         }
