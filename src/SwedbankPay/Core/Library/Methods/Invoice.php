@@ -270,6 +270,7 @@ trait Invoice
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @SuppressWarnings(PHPMD.MissingImport)
      */
     public function captureInvoice($orderId, array $items = [])
     {
