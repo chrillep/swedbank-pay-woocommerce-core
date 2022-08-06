@@ -67,14 +67,12 @@ interface InvoiceInterface
      * Capture Invoice.
      *
      * @param mixed $orderId
-     * @param int|float $amount
-     * @param int|float $vatAmount
-     * @param array $items
+     * @param \SwedbankPay\Core\OrderItem[] $items
      *
      * @return Response
      * @throws Exception
      */
-    public function captureInvoice($orderId, $amount = null, $vatAmount = 0, array $items = []);
+    public function captureInvoice($orderId, array $items = []);
 
     /**
      * Cancel Invoice.

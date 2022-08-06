@@ -263,56 +263,61 @@ trait Invoice
      * Capture Invoice.
      *
      * @param mixed $orderId
-     * @param int|float $amount
-     * @param int|float $vatAmount
-     * @param array $items
+     * @param \SwedbankPay\Core\OrderItem[] $items
      *
      * @return Response
      * @throws Exception
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @SuppressWarnings(PHPMD.MissingImport)
      */
-    public function captureInvoice($orderId, $amount = null, $vatAmount = 0, array $items = [])
+    public function captureInvoice($orderId, array $items = [])
     {
         /** @var Order $order */
         $order = $this->getOrder($orderId);
-
-        if (!$amount) {
-            $amount = $order->getAmount();
-            $vatAmount = $order->getVatAmount();
-        }
-
-        if (!$this->canCapture($orderId, $amount)) {
-            throw new Exception('Capturing is not available.');
-        }
 
         $paymentId = $order->getPaymentId();
         if (empty($paymentId)) {
             throw new Exception('Unable to get payment ID');
         }
 
+        if (count($items) === 0) {
+            $items = $order->getItems();
+        }
+
         // Covert order lines
         $itemDescriptions = [];
         $vatSummary = [];
+
+        // Recalculate amount and VAT amount
+        $amount = 0;
+        $vatAmount = 0;
         foreach ($items as $item) {
+            if (is_array($item)) {
+                $item = new \SwedbankPay\Core\OrderItem($item);
+            }
+
+            $amount += $item->getAmount();
+            $vatAmount += $item->getVatAmount();
+
             $itemDescriptions[] = [
-                'amount' => $item[OrderItemInterface::FIELD_AMOUNT],
-                'description' => $item[OrderItemInterface::FIELD_NAME]
+                'amount' => $item->getAmount(),
+                'description' => $item->getName()
             ];
 
             $vatSummary[] = [
-                'amount' => $item[OrderItemInterface::FIELD_AMOUNT],
-                'vatPercent' => $item[OrderItemInterface::FIELD_VAT_PERCENT],
-                'vatAmount' => $item[OrderItemInterface::FIELD_VAT_AMOUNT]
+                'amount' => $item->getAmount(),
+                'vatPercent' => $item->getVatPercent(),
+                'vatAmount' => $item->getVatAmount()
             ];
         }
 
         $transactionData = new TransactionCapture();
         $transactionData
             ->setActivity('FinancingConsumer')
-            ->setAmount((int)bcmul(100, $amount))
-            ->setVatAmount((int)bcmul(100, $vatAmount))
+            ->setAmount($amount)
+            ->setVatAmount($vatAmount)
             ->setDescription(sprintf('Capture for Order #%s', $order->getOrderId()))
             ->setPayeeReference($this->generatePayeeReference($orderId))
             ->setReceiptReference($this->generatePayeeReference($orderId))

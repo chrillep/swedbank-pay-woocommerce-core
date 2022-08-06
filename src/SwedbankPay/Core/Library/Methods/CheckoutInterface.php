@@ -81,14 +81,12 @@ interface CheckoutInterface
      * Capture Checkout.
      *
      * @param mixed $orderId
-     * @param int|float $amount
-     * @param int|float $vatAmount
-     * @param array $items
+     * @param \SwedbankPay\Core\OrderItem[] $items
      *
      * @return Response
      * @throws Exception
      */
-    public function captureCheckout($orderId, $amount = null, $vatAmount = 0, array $items = []);
+    public function captureCheckout($orderId, array $items = []);
 
     /**
      * Cancel Checkout.
@@ -106,12 +104,10 @@ interface CheckoutInterface
      * Refund Checkout.
      *
      * @param mixed $orderId
-     * @param int|float|null $amount
-     * @param int|float $vatAmount
-     * @param array $items
+     * @param \SwedbankPay\Core\OrderItem[] $items
      *
      * @return Response
      * @throws Exception
      */
-    public function refundCheckout($orderId, $amount = null, $vatAmount = 0, array $items = []);
+    public function refundCheckout($orderId, array $items = []);
 }

@@ -469,9 +469,7 @@ trait Checkout
      * Capture Checkout.
      *
      * @param mixed $orderId
-     * @param int|float $amount
-     * @param int|float $vatAmount
-     * @param array $items
+     * @param \SwedbankPay\Core\OrderItem[] $items
      *
      * @return Response
      * @throws Exception
@@ -480,27 +478,33 @@ trait Checkout
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @SuppressWarnings(PHPMD.MissingImport)
      */
-    public function captureCheckout($orderId, $amount = null, $vatAmount = 0, array $items = [])
+    public function captureCheckout($orderId, array $items = [])
     {
         /** @var Order $order */
         $order = $this->getOrder($orderId);
-
-        if (!$amount) {
-            $amount = $order->getAmount();
-            $vatAmount = $order->getVatAmount();
-        }
 
         $paymentOrderId = $order->getPaymentOrderId();
         if (empty($paymentOrderId)) {
             throw new Exception('Unable to get the payment order ID');
         }
 
+        if (count($items) === 0) {
+            $items = $order->getItems();
+        }
+
         // Build items collection
         $orderItems = new OrderItemsCollection();
+
+        // Recalculate amount and VAT amount
+        $amount = 0;
+        $vatAmount = 0;
         foreach ($items as $item) {
             if (is_array($item)) {
                 $item = new \SwedbankPay\Core\OrderItem($item);
             }
+
+            $amount += $item->getAmount();
+            $vatAmount += $item->getVatAmount();
 
             $orderItem = new OrderItem();
             $orderItem
@@ -525,8 +529,8 @@ trait Checkout
 
         $transactionData = new TransactionData();
         $transactionData
-            ->setAmount((int)bcmul(100, $amount))
-            ->setVatAmount((int)bcmul(100, $vatAmount))
+            ->setAmount($amount)
+            ->setVatAmount($vatAmount)
             ->setDescription(sprintf('Capture for Order #%s', $order->getOrderId()))
             ->setPayeeReference($this->generatePayeeReference($orderId))
             ->setOrderItems($orderItems);
@@ -665,9 +669,7 @@ trait Checkout
      * Refund Checkout.
      *
      * @param mixed $orderId
-     * @param int|float|null $amount
-     * @param int|float $vatAmount
-     * @param array $items
+     * @param \SwedbankPay\Core\OrderItem[] $items
      *
      * @return Response
      * @throws Exception
@@ -677,7 +679,7 @@ trait Checkout
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @SuppressWarnings(PHPMD.MissingImport)
      */
-    public function refundCheckout($orderId, $amount = null, $vatAmount = 0, array $items = [])
+    public function refundCheckout($orderId, array $items = [])
     {
         /** @var Order $order */
         $order = $this->getOrder($orderId);
@@ -702,8 +704,8 @@ trait Checkout
                 $item = new \SwedbankPay\Core\OrderItem($item);
             }
 
-            $amount += bcdiv($item->getAmount(), 100);
-            $vatAmount += bcdiv($item->getVatAmount(), 100);
+            $amount += $item->getAmount();
+            $vatAmount += $item->getVatAmount();
 
             $orderItem = new OrderItem();
             $orderItem
@@ -728,9 +730,9 @@ trait Checkout
 
         $transactionData = new TransactionData();
         $transactionData
-            ->setAmount((int)bcmul(100, $amount))
-            ->setVatAmount((int)bcmul(100, $vatAmount))
-            ->setDescription(sprintf('Refund for Order #%s. Amount: %s', $order->getOrderId(), $amount))
+            ->setAmount($amount)
+            ->setVatAmount($vatAmount)
+            ->setDescription(sprintf('Refund for Order #%s. Amount: %s', $order->getOrderId(), ($amount / 100)))
             ->setPayeeReference($this->generatePayeeReference($orderId))
             ->setReceiptReference($this->generatePayeeReference($orderId))
             ->setOrderItems($orderItems);

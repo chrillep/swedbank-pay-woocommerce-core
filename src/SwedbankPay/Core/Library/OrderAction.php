@@ -186,13 +186,13 @@ trait OrderAction
 
         // Use the checkout method if possible
         if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
-            return $this->captureCheckout($orderId, $amount, $vatAmount, $order->getItems());
+            return $this->captureCheckout($orderId);
         }
 
         // Use the invoice method if possible
         if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_INVOICE) {
             // @todo Should we use different credentials?
-            return $this->captureInvoice($orderId, $amount, $vatAmount, $order->getItems());
+            return $this->captureInvoice($orderId);
         }
 
         $paymentId = $order->getPaymentId();
@@ -376,7 +376,7 @@ trait OrderAction
 
         // Use the checkout method if possible
         if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
-            return $this->refundCheckout($orderId, $amount, $vatAmount, $order->getItems());
+            return $this->refundCheckout($orderId, $order->getItems());
         }
 
         // Use the invoice method if possible

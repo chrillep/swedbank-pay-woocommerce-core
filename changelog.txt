@@ -1,3 +1,9 @@
+Version 5.2.0
+Changed
+- Changed method parameters `captureCheckout($orderId, array $items = [])`
+- Changed method parameters `refundCheckout($orderId, array $items = [])`
+- Changed method parameters `captureInvoice($orderId, array $items = [])`
+
 Version 5.1.0
 Changed
 - Fix User Agent string
