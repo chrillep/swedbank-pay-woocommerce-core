@@ -403,4 +403,16 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
     {
         throw new Exception('createCreditMemo exception');
     }
+
+    /**
+     * Check if Credit Memo exist.
+     *
+     * @param string $transactionId
+     *
+     * @return bool
+     */
+    public function isCreditMemoExist($transactionId)
+    {
+        return false;
+    }
 }
