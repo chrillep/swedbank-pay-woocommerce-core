@@ -227,4 +227,13 @@ interface PaymentAdapterInterface
      * @throws Exception
      */
     public function createCreditMemo($orderId, $amount, $transactionId, $description);
+
+    /**
+     * Check if Credit Memo exist.
+     *
+     * @param string $transactionId
+     *
+     * @return bool
+     */
+    public function isCreditMemoExist($transactionId);
 }

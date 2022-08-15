@@ -1091,38 +1091,14 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      */
     public function createCreditMemo($orderId, $amount, $transactionId, $description)
     {
-        // Prevent refund credit memo creation through Callback
-        if (get_transient('sb_refund_block_' . $orderId)) {
-            delete_transient('sb_refund_block_' . $orderId);
-            return;
+        if (!$transactionId) {
+            throw new Exception('Unable to create refund memo. Transaction ID is missing.', 500);
         }
 
-        global $wpdb;
-
-        // Get refunds by transaction ID
-        if ($transactionId) {
-            $query = "
-                SELECT post_id FROM `{$wpdb->prefix}postmeta` postmeta
-                LEFT JOIN `{$wpdb->prefix}posts` AS posts ON postmeta.post_id = posts.ID
-                WHERE meta_key='_transaction_id' AND meta_value=%s AND posts.post_type='shop_order_refund';
-            ";
-
-            if ($wpdb->get_var($wpdb->prepare($query, $transactionId))) {
-                // Credit Memo is already exists
-                return;
-            }
-        } else {
-            // Get refunds by amount
-            $order = wc_get_order($orderId);
-            $refunds = $order->get_refunds();
-
-            foreach ($refunds as $refund) {
-                /** @var \WC_Order_Refund $refund */
-                if (bccomp($refund->get_amount(), $amount, 2) === 0) {
-                    // Credit Memo is already exists
-                    return;
-                }
-            }
+        // Prevent refund credit memo creation through Callback
+        if (get_transient('sb_refund_block_' . $orderId)) {
+            //delete_transient('sb_refund_block_' . $orderId);
+            return;
         }
 
         // Create the refund
@@ -1132,7 +1108,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 'amount' => $amount,
                 'reason' => $description,
                 'refund_payment' => false,
-                'restock_items'  => true,
+                'restock_items' => false,
             )
         );
 
@@ -1144,10 +1120,9 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             throw new Exception('Cannot create order refund, please try again.', 500);
         }
 
-        if ($transactionId) {
-            $refund->update_meta_data('_transaction_id', $transactionId);
-            $refund->save_meta_data();
-        }
+        // Add transaction id to identify refund memo
+        $refund->update_meta_data('_transaction_id', $transactionId);
+        $refund->save_meta_data();
 
         $this->log(
             'info',
@@ -1162,6 +1137,31 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                 $refund->get_id()
             ]
         );
+    }
+
+    /**
+     * Check if Credit Memo exist by Transaction ID.
+     *
+     * @param string $transactionId
+     *
+     * @return bool
+     */
+    public function isCreditMemoExist($transactionId)
+    {
+        global $wpdb;
+
+        $query = "
+                SELECT post_id FROM `{$wpdb->prefix}postmeta` postmeta
+                LEFT JOIN `{$wpdb->prefix}posts` AS posts ON postmeta.post_id = posts.ID
+                WHERE meta_key='_transaction_id' AND meta_value=%s AND posts.post_type='shop_order_refund';
+            ";
+
+        if ($wpdb->get_var($wpdb->prepare($query, $transactionId))) {
+            // Credit Memo is already exists
+            return true;
+        }
+
+        return false;
     }
 
     /**

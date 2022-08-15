@@ -995,13 +995,6 @@ trait OrderAction
                         $paymentBody = $paymentInfo['payment'];
                     }
 
-                    // Check if the payment was refunded fully
-                    // `remainingReversalAmount` is missing if the payment was refunded fully
-                    $isFullRefund = false;
-                    if (!isset($paymentBody['remainingReversalAmount'])) {
-                        $isFullRefund = true;
-                    }
-
                     // Create Credit Memo
                     $this->createCreditMemo(
                         $orderId,
@@ -1009,6 +1002,13 @@ trait OrderAction
                         $transaction->getNumber(),
                         $transaction->getDescription()
                     );
+
+                    // Check if the payment was refunded fully
+                    // `remainingReversalAmount` is missing if the payment was refunded fully
+                    $isFullRefund = false;
+                    if (!isset($paymentBody['remainingReversalAmount'])) {
+                        $isFullRefund = true;
+                    }
 
                     // Update order status
                     if ($isFullRefund) {
@@ -1063,6 +1063,11 @@ trait OrderAction
      */
     public function createCreditMemo($orderId, $amount, $transactionId, $description)
     {
+        // Check if a credit memo was created before
+        if ($this->isCreditMemoExist($transactionId)) {
+            return;
+        }
+
         try {
             $this->adapter->createCreditMemo($orderId, $amount, $transactionId, $description);
         } catch (Exception $e) {
@@ -1074,6 +1079,18 @@ trait OrderAction
                 )
             );
         }
+    }
+
+    /**
+     * Check if Credit Memo exist.
+     *
+     * @param string $transactionId
+     *
+     * @return bool
+     */
+    public function isCreditMemoExist($transactionId)
+    {
+        return $this->adapter->isCreditMemoExist($transactionId);
     }
 
     /**

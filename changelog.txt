@@ -1,8 +1,14 @@
 Version 5.2.0
+Added
+- Added method `isCreditMemoExist($transactionId)`
+
 Changed
 - Changed method parameters `captureCheckout($orderId, array $items = [])`
 - Changed method parameters `refundCheckout($orderId, array $items = [])`
 - Changed method parameters `captureInvoice($orderId, array $items = [])`
+
+Fixed
+- Fixed deprecation notice
 
 Version 5.1.0
 Changed
