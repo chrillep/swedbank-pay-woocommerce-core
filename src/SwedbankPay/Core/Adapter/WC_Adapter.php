@@ -190,11 +190,6 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             $paymentUrl = add_query_arg(array('payment_url' => '1'), wc_get_checkout_url());
         }
 
-        // Workaround: don't set paymentUrl if there's "pay_for_order" page
-        if (isset($_GET['pay_for_order'], $_GET['key'])) {
-            $paymentUrl = null;
-        }
-
         if ($this->gateway->is_new_credit_card) {
             return array(
                 PlatformUrlsInterface::COMPLETE_URL => add_query_arg(
