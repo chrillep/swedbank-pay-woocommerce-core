@@ -1,3 +1,7 @@
+Version 5.2.1
+Changed
+- Removed the workaround in WC_Adapter
+
 Version 5.2.0
 Added
 - Added method `isCreditMemoExist($transactionId)`

@@ -37,7 +37,7 @@ trait Checkout
      *
      * @param mixed $orderId
      * @param string|null $consumerProfileRef
-     * @param bool $generateRecurrenceToken
+     * @param bool $generateToken
      *
      * @return Response
      * @throws Exception
@@ -48,7 +48,7 @@ trait Checkout
     public function initiatePaymentOrderPurchase(
         $orderId,
         $consumerProfileRef = null,
-        $generateRecurrenceToken = false
+        $generateToken = false
     ) {
         /** @var Order $order */
         $order = $this->getOrder($orderId);
@@ -118,7 +118,7 @@ trait Checkout
             ->setDescription($order->getDescription())
             ->setUserAgent($order->getHttpUserAgent())
             ->setLanguage($order->getLanguage())
-            ->setGenerateRecurrenceToken($generateRecurrenceToken)
+            ->setGenerateRecurrenceToken($generateToken)
             ->setDisablePaymentMenu(false)
             ->setUrls($urlData)
             ->setPayeeInfo($payeeInfo)
