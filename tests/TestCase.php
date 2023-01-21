@@ -1,5 +1,6 @@
 <?php
 
+use PHPUnit\Framework\MockObject\MockBuilder;
 use SwedbankPay\Core\Core;
 
 class TestCase extends \PHPUnit\Framework\TestCase
@@ -42,4 +43,14 @@ class TestCase extends \PHPUnit\Framework\TestCase
         $this->adapter = null;
         $this->core = null;
     }
+
+	/**
+	 * Returns a builder object to create mock objects using a fluent interface.
+	 *
+	 * @param string|string[] $className
+	 */
+	public function getMockBuilder($className): MockBuilder
+	{
+		return new MockBuilder($this, $className);
+	}
 }

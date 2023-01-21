@@ -55,11 +55,10 @@ interface CardInterface
      * Initiate a CreditCard Unscheduled Purchase
      *
      * @param mixed $orderId
-     * @param string $recurrenceToken
      * @param string|null $paymentToken
      *
      * @return Response
-     * @throws \Exception
+     * @throws Exception
      */
-    public function initiateCreditCardUnscheduledPurchase($orderId, $recurrenceToken, $paymentToken = null);
+    public function initiateCreditCardUnscheduledPurchase($orderId, $paymentToken = null);
 }
