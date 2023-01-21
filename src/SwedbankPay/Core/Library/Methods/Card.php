@@ -153,7 +153,7 @@ trait Card
                 sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
-            throw new Exception($e->getMessage());
+            throw new Exception($this->formatErrorMessage($purchaseRequest->getClient()->getResponseBody()));
         }
     }
 
@@ -252,7 +252,7 @@ trait Card
                 sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
-            throw new Exception($e->getMessage());
+            throw new Exception($this->formatErrorMessage($verifyRequest->getClient()->getResponseBody()));
         }
     }
 
@@ -342,7 +342,7 @@ trait Card
                 sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
-            throw new Exception($e->getMessage());
+            throw new Exception($this->formatErrorMessage($purchaseRequest->getClient()->getResponseBody()));
         }
     }
 
@@ -433,7 +433,7 @@ trait Card
                 sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
             );
 
-            throw new Exception($e->getMessage());
+            throw new Exception($this->formatErrorMessage($purchaseRequest->getClient()->getResponseBody()));
         }
     }
 

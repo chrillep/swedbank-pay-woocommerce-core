@@ -217,4 +217,43 @@ class Core implements
 
         $this->adapter->log($level, $message, $context);
     }
+
+    /**
+     * Parse and format error response
+     *
+     * @param string $responseBody
+     *
+     * @return string
+     */
+    public function formatErrorMessage($responseBody)
+    {
+        $responseBody = json_decode($responseBody, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return $responseBody;
+        }
+
+        $message = $responseBody['detail'];
+        if (isset($responseBody['problems']) && count($responseBody['problems']) > 0) {
+            foreach ($responseBody['problems'] as $problem) {
+                // Specify error message for invalid phone numbers. It's such fields like:
+                // Payment.Cardholder.Msisdn
+                // Payment.Cardholder.HomePhoneNumber
+                // Payment.Cardholder.WorkPhoneNumber
+                // Payment.Cardholder.BillingAddress.Msisdn
+                // Payment.Cardholder.ShippingAddress.Msisdn
+                if ((strpos($problem['name'], 'Msisdn') !== false) ||
+                    strpos($problem['name'], 'HomePhoneNumber') !== false ||
+                    strpos($problem['name'], 'WorkPhoneNumber') !== false
+                ) {
+                    $message = 'Your phone number format is wrong. Please input with country code, for example like this +46707777777'; //phpcs:ignore
+
+                    break;
+                }
+
+                $message .= "\n" . sprintf('%s: %s', $problem['name'], $problem['description']);
+            }
+        }
+
+        return $message;
+    }
 }
