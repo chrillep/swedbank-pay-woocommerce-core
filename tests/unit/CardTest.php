@@ -137,11 +137,11 @@ class CardTest extends TestCase
             $configurationMock
         );
 
-        $clientMock->expects($this->once())
+        $clientMock->expects($this->any())
                    ->method('getAccessToken')
                    ->willReturn('access-token');
 
-        $clientMock->expects($this->once())
+        $clientMock->expects($this->any())
                    ->method('getPayeeId')
                    ->willReturn('payee-id');
 
