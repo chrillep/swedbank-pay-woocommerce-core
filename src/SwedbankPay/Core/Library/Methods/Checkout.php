@@ -59,7 +59,7 @@ trait Checkout
         $urlData
             ->setHostUrls($urls->getHostUrls())
             ->setCompleteUrl($urls->getCompleteUrl())
-            ->setCancelUrl($urls->getCompleteUrl())
+            ->setCancelUrl($urls->getCancelUrl())
             ->setPaymentUrl($urls->getPaymentUrl())
             ->setCallbackUrl($urls->getCallbackUrl())
             ->setTermsOfService($urls->getTermsUrl())
@@ -200,7 +200,7 @@ trait Checkout
         $urlData = new PaymentorderUrl();
         $urlData->setHostUrls($urls->getHostUrls())
                 ->setCompleteUrl($urls->getCompleteUrl())
-                ->setCancelUrl($urls->getCompleteUrl())
+                ->setCancelUrl($urls->getCancelUrl())
                 ->setPaymentUrl($urls->getPaymentUrl())
                 ->setCallbackUrl($urls->getCallbackUrl())
                 ->setTermsOfService($urls->getTermsUrl())
@@ -292,7 +292,7 @@ trait Checkout
         $urlData
             ->setHostUrls($urls->getHostUrls())
             ->setCompleteUrl($urls->getCompleteUrl())
-            ->setCancelUrl($urls->getCompleteUrl())
+            ->setCancelUrl($urls->getCancelUrl())
             ->setPaymentUrl($urls->getPaymentUrl())
             ->setCallbackUrl($urls->getCallbackUrl())
             ->setTermsOfService($urls->getTermsUrl())
