@@ -170,17 +170,23 @@ interface PaymentAdapterInterface
      * Save Payment Token.
      *
      * @param mixed $customerId
-     * @param string $paymentToken
-     * @param string $recurrenceToken
+     * @param string|null $paymentToken
+     * @param string|null $recurrenceToken
+     * @param string|null $unscheduledToken
      * @param string $cardBrand
      * @param string $maskedPan
      * @param string $expiryDate
      * @param mixed|null $orderId
+     *
+     * @return void
+     *
+     * @throws Exception
      */
     public function savePaymentToken(
         $customerId,
         $paymentToken,
         $recurrenceToken,
+        $unscheduledToken,
         $cardBrand,
         $maskedPan,
         $expiryDate,

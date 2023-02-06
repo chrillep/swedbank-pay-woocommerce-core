@@ -223,4 +223,20 @@ class Order extends Data implements OrderInterface
 
         return $info;
     }
+
+    /**
+     * @codeCoverageIgnore
+     * @return array
+     * @throws Exception
+     */
+    public function fetchPaymentInfo()
+    {
+        $paymentOrderId = $this->getPaymentOrderId();
+        if (empty($paymentOrderId)) {
+            throw new Exception('Unable to get the payment order ID');
+        }
+
+        // @todo Return payment info
+        //return $this->core->fetchPaymentInfo($paymentOrderId);
+    }
 }

@@ -11,6 +11,8 @@ use SwedbankPay\Core\Exception;
  */
 interface CheckoutInterface
 {
+    const PAYMENTORDER_DELETE_TOKEN_URL = '/psp/paymentorders/payerownedtokens/%s';
+
     /**
      * Initiate Payment Order Purchase.
      *
@@ -51,6 +53,18 @@ interface CheckoutInterface
     public function initiatePaymentOrderRecur($orderId, $recurrenceToken);
 
     /**
+     * Initiate Payment Order Unscheduled Payment.
+     *
+     * @param mixed $orderId
+     * @param string $unscheduledToken
+     *
+     * @return Response
+     * @throws \Exception
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    public function initiatePaymentOrderUnscheduledPurchase($orderId, $unscheduledToken);
+
+    /**
      * @param string $updateUrl
      * @param mixed $orderId
      *
@@ -76,6 +90,16 @@ interface CheckoutInterface
      * @return array|false
      */
     public function getCheckoutCurrentPayment($paymentOrderId);
+
+    /**
+     * Extract and save tokens.
+     *
+     * @param mixed $orderId
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function savePaymentOrderTokens($orderId);
 
     /**
      * Capture Checkout.
@@ -110,4 +134,14 @@ interface CheckoutInterface
      * @throws Exception
      */
     public function refundCheckout($orderId, array $items = []);
+
+    /**
+     * Delete Token.
+     *
+     * @param string $paymentToken
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function deletePaymentToken($paymentToken);
 }

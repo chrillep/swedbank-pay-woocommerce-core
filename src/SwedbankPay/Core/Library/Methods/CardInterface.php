@@ -11,10 +11,6 @@ use SwedbankPay\Core\Exception;
  */
 interface CardInterface
 {
-    const OPERATION_UNSCHEDULED_PURCHASE = 'UnscheduledPurchase';
-    const OPERATION_FINANCING_CONSUMER = 'FinancingConsumer';
-    const TYPE_CREDITCARD = 'CreditCard';
-
     const CARD_PAYMENTS_URL = '/psp/creditcard/payments';
 
     /**

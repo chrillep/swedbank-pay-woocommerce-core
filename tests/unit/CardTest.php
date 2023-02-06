@@ -1,9 +1,6 @@
 <?php
 
-use SwedbankPay\Api\Client\Client;
 use SwedbankPay\Core\Api\Response;
-use SwedbankPay\Core\Core;
-use SwedbankPay\Core\Configuration;
 
 class CardTest extends TestCase
 {
@@ -36,8 +33,8 @@ class CardTest extends TestCase
             [
                 'payment' => [
                     'operation' => 'Abort',
-                    'abortReason' => 'CancelledByConsumer'
-                ]
+                    'abortReason' => 'CancelledByConsumer',
+                ],
             ]
         );
         $this->assertInstanceOf(Response::class, $result);
@@ -45,7 +42,8 @@ class CardTest extends TestCase
         $this->assertEquals('Aborted', $result['payment']['state']);
     }
 
-    public function testInitiateNewCreditCardPayment() {
+    public function testInitiateNewCreditCardPayment()
+    {
         $result = $this->core->initiateVerifyCreditCardPayment(1);
         $this->assertInstanceOf(Response::class, $result);
         $this->assertArrayHasKey('payment', $result);
@@ -71,8 +69,8 @@ class CardTest extends TestCase
             [
                 'payment' => [
                     'operation' => 'Abort',
-                    'abortReason' => 'CancelledByConsumer'
-                ]
+                    'abortReason' => 'CancelledByConsumer',
+                ],
             ]
         );
         $this->assertInstanceOf(Response::class, $result);
@@ -82,78 +80,15 @@ class CardTest extends TestCase
 
     public function testInitiateCreditCardUnscheduledPurchase()
     {
-        /** @var Core&\PHPUnit\Framework\MockObject\MockObject|\PHPUnit\Framework\MockObject\MockObject $coreMock */
-        $coreMock = clone $this->core;
+        $this->clientMock->expects($this->once())
+            ->method('getResponseBody')
+            ->willReturn([]);
 
-        $reflection = new \ReflectionClass($coreMock);
-        $adapterProp = $reflection->getProperty('adapter');
-        $adapterProp->setAccessible(true);
-        $adapterProp->setValue(
-            $coreMock,
-            $this->adapter
-        );
+        $this->clientMock->expects($this->any())
+            ->method('getResponseCode')
+            ->willReturn(201);
 
-        /** @var Client&\PHPUnit\Framework\MockObject\MockObject|\PHPUnit\Framework\MockObject\MockObject $clientMock */
-        $clientMock = $this->getMockBuilder(Client::class)
-                           ->disableOriginalConstructor()
-                           ->getMock();
-
-        $clientProp = $reflection->getProperty('client');
-        $clientProp->setAccessible(true);
-        $clientProp->setValue(
-            $coreMock,
-            $clientMock
-        );
-
-        /** @var Configuration&\PHPUnit\Framework\MockObject\MockObject|\PHPUnit\Framework\MockObject\MockObject $configurationMock */
-        $configurationMock = $this->getMockBuilder(Configuration::class)
-                                  ->disableOriginalConstructor()
-                                  ->getMock();
-
-        $map = [
-            'getAutoCapture' => false,
-            'getSubsite' => 'subsite',
-            'getPayeeId' => 'payee-id',
-            'getPayeeName' => 'payee-name',
-            'getAccessToken' => 'access-token',
-            'getMode' => true,
-            'getDebug' => false,
-        ];
-
-        $configurationMock->expects($this->any())
-            ->method('__call')
-            ->willReturnCallback(function ($key) use ($map) {
-                if (isset($map[$key])) {
-                    return $map[$key];
-                }
-
-                return false;
-            });
-
-        $configurationProp = $reflection->getProperty('configuration');
-        $configurationProp->setAccessible(true);
-        $configurationProp->setValue(
-            $coreMock,
-            $configurationMock
-        );
-
-        $clientMock->expects($this->any())
-                   ->method('getAccessToken')
-                   ->willReturn('access-token');
-
-        $clientMock->expects($this->any())
-                   ->method('getPayeeId')
-                   ->willReturn('payee-id');
-
-        $clientMock->expects($this->once())
-                   ->method('request')
-                   ->willReturn($clientMock);
-
-        $clientMock->expects($this->once())
-                   ->method('getResponseBody')
-                   ->willReturn([]);
-
-        $result = $coreMock->initiateCreditCardUnscheduledPurchase(1, 'payment-token');
+        $result = $this->coreMock->initiateCreditCardUnscheduledPurchase(1, 'c58a9aad-4b82-43d1-ba3a-fca014747e72');
 
         $this->assertInstanceOf(Response::class, $result);
 

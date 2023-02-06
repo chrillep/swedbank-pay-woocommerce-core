@@ -59,7 +59,7 @@ trait Checkout
         $urlData
             ->setHostUrls($urls->getHostUrls())
             ->setCompleteUrl($urls->getCompleteUrl())
-            ->setCancelUrl($urls->getCompleteUrl())
+            ->setCancelUrl($urls->getCancelUrl())
             ->setPaymentUrl($urls->getPaymentUrl())
             ->setCallbackUrl($urls->getCallbackUrl())
             ->setTermsOfService($urls->getTermsUrl())
@@ -119,6 +119,8 @@ trait Checkout
             ->setUserAgent($order->getHttpUserAgent())
             ->setLanguage($order->getLanguage())
             ->setGenerateRecurrenceToken($generateToken)
+            ->setGeneratePaymentToken($generateToken)
+            ->setGenerateUnscheduledToken($generateToken)
             ->setDisablePaymentMenu(false)
             ->setUrls($urlData)
             ->setPayeeInfo($payeeInfo)
@@ -127,26 +129,23 @@ trait Checkout
             ->setRiskIndicator($riskIndicator)
             ->setItems($items);
 
+        $payer = new PaymentorderPayer();
+        $payer->setPayerReference($order->getPayerReference());
+
+        // Add consumerProfileRef if exists
+        if (!empty($consumerProfileRef)) {
+            $payer->setConsumerProfileRef($consumerProfileRef);
+        }
+
         // Add payer info
         if ($this->configuration->getUsePayerInfo()) {
-            $payer = new PaymentorderPayer();
             $payer->setEmail($order->getBillingEmail())
                   ->setMsisdn($order->getBillingPhone())
                   ->setWorkPhoneNumber($order->getBillingPhone())
                   ->setHomePhoneNumber($order->getBillingPhone());
-
-            // Add consumerProfileRef if exists
-            if (!empty($consumerProfileRef)) {
-                $payer->setConsumerProfileRef($consumerProfileRef);
-            }
-
-            $paymentOrder->setPayer($payer);
-        } elseif (!empty($consumerProfileRef)) {
-            $payer = new PaymentorderPayer();
-            $payer->setConsumerProfileRef($consumerProfileRef);
-
-            $paymentOrder->setPayer($payer);
         }
+
+        $paymentOrder->setPayer($payer);
 
         $paymentOrderObject = new PaymentorderObject();
         $paymentOrderObject->setPaymentorder($paymentOrder);
@@ -223,14 +222,30 @@ trait Checkout
             'rejectCorporateCards' => $this->configuration->getRejectCorporateCards()
         ]]);
 
+        $payer = new PaymentorderPayer();
+        $payer->setPayerReference($order->getPayerReference());
+
+        // Add payer info
+        if ($this->configuration->getUsePayerInfo()) {
+            $payer->setEmail($order->getBillingEmail())
+                  ->setMsisdn($order->getBillingPhone())
+                  ->setWorkPhoneNumber($order->getBillingPhone())
+                  ->setHomePhoneNumber($order->getBillingPhone());
+        }
+
+        $payer->setPayerReference($order->getPayerReference());
+
         $paymentOrder = new Paymentorder();
         $paymentOrder
+            ->setPayer($payer)
             ->setOperation(self::OPERATION_VERIFY)
             ->setCurrency($order->getCurrency())
             ->setDescription('Verification of Credit Card')
             ->setUserAgent($order->getHttpUserAgent())
             ->setLanguage($order->getLanguage())
             ->setGenerateRecurrenceToken(true)
+            ->setGeneratePaymentToken(true)
+            ->setGenerateUnscheduledToken(true)
             ->setUrls($urlData)
             ->setPayeeInfo($payeeInfo)
             ->setMetadata($metadata)
@@ -361,6 +376,136 @@ trait Checkout
         $paymentOrderObject = $this->adapter->processPaymentObject($paymentOrderObject, $orderId);
 
         $purchaseRequest = new Recur($paymentOrderObject);
+        $purchaseRequest->setClient($this->client);
+
+        try {
+            /** @var ResponseServiceInterface $responseService */
+            $responseService = $purchaseRequest->send();
+
+            $this->log(
+                LogLevel::DEBUG,
+                $purchaseRequest->getClient()->getDebugInfo()
+            );
+
+            return new Response($responseService->getResponseData());
+        } catch (ClientException $e) {
+            $this->log(
+                LogLevel::DEBUG,
+                $purchaseRequest->getClient()->getDebugInfo()
+            );
+
+            $this->log(
+                LogLevel::DEBUG,
+                sprintf('%s: API Exception: %s', __METHOD__, $e->getMessage())
+            );
+
+            throw new Exception($this->formatErrorMessage($purchaseRequest->getClient()->getResponseBody()));
+        }
+    }
+
+    /**
+     * Initiate Payment Order Unscheduled Payment.
+     *
+     * @param mixed $orderId
+     * @param string $unscheduledToken
+     *
+     * @return Response
+     * @throws \Exception
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    public function initiatePaymentOrderUnscheduledPurchase($orderId, $unscheduledToken)
+    {
+        /** @var Order $order */
+        $order = $this->getOrder($orderId);
+
+        $urls = $this->getPlatformUrls($orderId);
+
+        $urlData = new PaymentorderUrl();
+        $urlData
+            ->setHostUrls($urls->getHostUrls())
+            ->setCompleteUrl($urls->getCompleteUrl())
+            ->setCancelUrl($urls->getCompleteUrl())
+            ->setPaymentUrl($urls->getPaymentUrl())
+            ->setCallbackUrl($urls->getCallbackUrl())
+            ->setTermsOfService($urls->getTermsUrl())
+            ->setLogoUrl($urls->getLogoUrl());
+
+        $payeeInfo = new PaymentorderPayeeInfo($this->getPayeeInfo($orderId)->toArray());
+
+        // Add metadata
+        $metadata = new PaymentorderMetadata();
+        $metadata->setData('order_id', $order->getOrderId());
+
+        // Add Risk Indicator
+        $riskIndicator = new PaymentorderRiskIndicator($this->getRiskIndicator($orderId)->toArray());
+
+        // Build items collection
+        $items = $order->getItems();
+        $orderItems = new OrderItemsCollection();
+        foreach ($items as $item) {
+            /** @var OrderItemInterface $item */
+
+            $orderItem = new OrderItem();
+            $orderItem
+                ->setReference($item->getReference())
+                ->setName($item->getName())
+                ->setType($item->getType())
+                ->setItemClass($item->getClass())
+                ->setItemUrl($item->getItemUrl())
+                ->setImageUrl($item->getImageUrl())
+                ->setDescription($item->getDescription())
+                //->setDiscountDescription($item->getDiscountDescription())
+                ->setQuantity($item->getQty())
+                ->setUnitPrice($item->getUnitPrice())
+                ->setQuantityUnit($item->getQtyUnit())
+                ->setVatPercent($item->getVatPercent())
+                ->setAmount($item->getAmount())
+                ->setVatAmount($item->getVatAmount())
+                ->setRestrictedToInstruments($item->getRestrictedToInstruments());
+
+            $orderItems->addItem($orderItem);
+        }
+
+        $paymentOrder = new Paymentorder();
+        $paymentOrder
+            ->setOperation(self::OPERATION_UNSCHEDULED_PURCHASE)
+            ->setUnscheduledToken($unscheduledToken)
+            ->setIntent(
+                $this->configuration->getAutoCapture() ?
+                    self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION
+            )
+            ->setCurrency($order->getCurrency())
+            ->setAmount($order->getAmountInCents())
+            ->setVatAmount($order->getVatAmountInCents())
+            ->setDescription($order->getDescription())
+            ->setUserAgent($order->getHttpUserAgent())
+            ->setLanguage($order->getLanguage())
+            ->setUrls($urlData)
+            ->setPayeeInfo($payeeInfo)
+            ->setMetadata($metadata)
+            ->setRiskIndicator($riskIndicator)
+            ->setOrderItems($orderItems);
+
+        $payer = new PaymentorderPayer();
+        $payer->setPayerReference($order->getPayerReference());
+
+        // Add payer info
+        if ($this->configuration->getUsePayerInfo()) {
+            $payer->setEmail($order->getBillingEmail())
+                  ->setMsisdn($order->getBillingPhone())
+                  ->setWorkPhoneNumber($order->getBillingPhone())
+                  ->setHomePhoneNumber($order->getBillingPhone());
+        }
+
+        $payer->setPayerReference($order->getPayerReference());
+
+        $paymentOrderObject = new PaymentorderObject();
+        $paymentOrderObject->setPaymentorder($paymentOrder);
+
+        // Process payment object
+        $paymentOrderObject = $this->adapter->processPaymentObject($paymentOrderObject, $orderId);
+
+        $purchaseRequest = new Purchase($paymentOrderObject);
         $purchaseRequest->setClient($this->client);
 
         try {
@@ -782,5 +927,25 @@ trait Checkout
 
             throw new Exception($this->formatErrorMessage($requestService->getClient()->getResponseBody()));
         }
+    }
+
+    /**
+     * Delete Token.
+     *
+     * @param string $paymentToken
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function deletePaymentToken($paymentToken)
+    {
+        $this->request(
+            'PATCH',
+            sprintf(self::PAYMENTORDER_DELETE_TOKEN_URL, $paymentToken),
+            [
+                'state' => 'Deleted',
+                'comment' => 'Customer removed the token'
+            ]
+        );
     }
 }
