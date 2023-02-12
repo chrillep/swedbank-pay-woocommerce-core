@@ -33,8 +33,8 @@ class CardTest extends TestCase
             [
                 'payment' => [
                     'operation' => 'Abort',
-                    'abortReason' => 'CancelledByConsumer'
-                ]
+                    'abortReason' => 'CancelledByConsumer',
+                ],
             ]
         );
         $this->assertInstanceOf(Response::class, $result);
@@ -42,7 +42,8 @@ class CardTest extends TestCase
         $this->assertEquals('Aborted', $result['payment']['state']);
     }
 
-    public function testInitiateNewCreditCardPayment() {
+    public function testInitiateNewCreditCardPayment()
+    {
         $result = $this->core->initiateVerifyCreditCardPayment(1);
         $this->assertInstanceOf(Response::class, $result);
         $this->assertArrayHasKey('payment', $result);
@@ -68,8 +69,8 @@ class CardTest extends TestCase
             [
                 'payment' => [
                     'operation' => 'Abort',
-                    'abortReason' => 'CancelledByConsumer'
-                ]
+                    'abortReason' => 'CancelledByConsumer',
+                ],
             ]
         );
         $this->assertInstanceOf(Response::class, $result);
@@ -77,4 +78,20 @@ class CardTest extends TestCase
         $this->assertEquals('Aborted', $result['payment']['state']);
     }
 
+    public function testInitiateCreditCardUnscheduledPurchase()
+    {
+        $this->clientMock->expects($this->once())
+            ->method('getResponseBody')
+            ->willReturn([]);
+
+        $this->clientMock->expects($this->any())
+            ->method('getResponseCode')
+            ->willReturn(201);
+
+        $result = $this->coreMock->initiateCreditCardUnscheduledPurchase(1, 'c58a9aad-4b82-43d1-ba3a-fca014747e72');
+
+        $this->assertInstanceOf(Response::class, $result);
+
+        return $result;
+    }
 }

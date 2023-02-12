@@ -44,7 +44,7 @@ class Authorization extends Data implements AuthorizationInterface
     /**
      * Get Masked Pan.
      *
-     * @return array
+     * @return string
      */
     public function getMaskedPan()
     {
@@ -54,7 +54,7 @@ class Authorization extends Data implements AuthorizationInterface
     /**
      * Get Card Brand.
      *
-     * @return array
+     * @return string
      */
     public function getCardBrand()
     {

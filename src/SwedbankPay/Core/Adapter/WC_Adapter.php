@@ -866,8 +866,9 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * Save Payment Token.
      *
      * @param mixed $customerId
-     * @param string $paymentToken
-     * @param string $recurrenceToken
+     * @param string|null $paymentToken
+     * @param string|null $recurrenceToken
+     * @param string|null $unscheduledToken
      * @param string $cardBrand
      * @param string $maskedPan
      * @param string $expiryDate
@@ -885,6 +886,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         $customerId,
         $paymentToken,
         $recurrenceToken,
+        $unscheduledToken,
         $cardBrand,
         $maskedPan,
         $expiryDate,
@@ -896,46 +898,48 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             return;
         }
 
-        // Create Payment Token
+        // Get token class
         if (!is_string($this->gateway->payment_token_class) ||
-            !class_exists($this->gateway->payment_token_class, false)) {
+            !class_exists($this->gateway->payment_token_class, false)
+        ) {
             throw new Exception('Payment Token class is not defined.');
         }
 
-        // Check if paymentToken is not exists
+        // Check if paymentToken
+        $tokenId = null;
         if (!empty($paymentToken) && $paymentToken !== 'none') {
             $query = "SELECT token_id FROM `{$wpdb->prefix}woocommerce_payment_tokens` WHERE `token` = %s;";
-            if ($wpdb->get_var($wpdb->prepare($query, $paymentToken))) {
-                return;
-            }
+            $tokenId = $wpdb->get_var($wpdb->prepare($query, $paymentToken));
         }
 
-        // Check if recurrenceToken is not exists
-        if (!empty($recurrenceToken)) {
-            //phpcs:ignore Generic.Files.LineLength.TooLong
-            $query = "SELECT payment_token_id FROM `{$wpdb->prefix}woocommerce_payment_tokenmeta` WHERE `meta_key` = %s AND `meta_value` = %s";
-            if ($wpdb->get_var($wpdb->prepare($query, 'recurrence_token', $recurrenceToken))) {
-                return;
-            }
+        /** @var \SwedbankPay\Payments\WooCommerce\WC_Payment_Token_Swedbank_Pay $token */
+        /** @var \SwedbankPay\Checkout\WooCommerce\WC_Payment_Token_Swedbank_Pay $token */
+        $token = new $this->gateway->payment_token_class($tokenId);
+
+        if (!$tokenId) {
+            $expiryDate = explode('/', $expiryDate);
+
+            $token->set_gateway_id($this->gateway->id);
+            $token->set_token($paymentToken ? $paymentToken : 'none');
+            $token->set_last4(substr($maskedPan, -4));
+            $token->set_expiry_year($expiryDate[1]);
+            $token->set_expiry_month($expiryDate[0]);
+            $token->set_card_type(strtolower($cardBrand));
+            $token->set_user_id($customerId);
+            $token->set_masked_pan($maskedPan);
         }
 
-        // Token is always required
-        if (empty($paymentToken)) {
-            $paymentToken = 'none';
+        if ($paymentToken && method_exists($token, 'set_payment_token')) {
+            $token->set_payment_token($paymentToken);
         }
 
-        $expiryDate = explode('/', $expiryDate);
+        if ($recurrenceToken) {
+            $token->set_recurrence_token($recurrenceToken);
+        }
 
-        $token = new $this->gateway->payment_token_class;
-        $token->set_gateway_id($this->gateway->id);
-        $token->set_token($paymentToken);
-        $token->set_recurrence_token($recurrenceToken);
-        $token->set_last4(substr($maskedPan, -4));
-        $token->set_expiry_year($expiryDate[1]);
-        $token->set_expiry_month($expiryDate[0]);
-        $token->set_card_type(strtolower($cardBrand));
-        $token->set_user_id($customerId);
-        $token->set_masked_pan($maskedPan);
+        if ($unscheduledToken && method_exists($token, 'set_unscheduled_token')) {
+            $token->set_unscheduled_token($unscheduledToken);
+        }
 
         // Save token
         try {
@@ -966,7 +970,8 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             [
                 $token->get_id(),
                 $paymentToken,
-                $recurrenceToken
+                $recurrenceToken,
+                $unscheduledToken
             ]
         );
 

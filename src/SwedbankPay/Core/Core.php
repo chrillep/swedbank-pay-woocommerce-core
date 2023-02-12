@@ -124,7 +124,7 @@ class Core implements
         }
 
         if (isset($_SERVER['HTTP_USER_AGENT'])) {
-            $userAgent .= $_SERVER['HTTP_USER_AGENT'];
+            $userAgent .= ' ' . $_SERVER['HTTP_USER_AGENT'];
         }
 
         $client->setAccessToken($this->configuration->getAccessToken())

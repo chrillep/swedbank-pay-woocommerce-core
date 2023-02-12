@@ -604,6 +604,15 @@ trait OrderAction
             throw new Exception('Unable to get payment ID');
         }
 
+        // Check and save payment tokens if persist
+        if ($order->getNeedsSaveTokenFlag()) {
+            if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+                $this->savePaymentOrderTokens($orderId);
+            } else {
+                $this->savePaymentTokens($orderId);
+            }
+        }
+
         // Fetch transactions list
         $transactions = $this->fetchTransactionsList($paymentId);
         $this->saveTransactions($orderId, $transactions);
@@ -691,31 +700,6 @@ trait OrderAction
                     break;
                 }
 
-                // Save Payment Token
-                $verifications = $this->fetchVerificationList($order->getPaymentId());
-                foreach ($verifications as $verification) {
-                    // Skip verification which failed transaction state
-                    if ($verification->getTransaction()->isFailed()) {
-                        continue;
-                    }
-
-                    if ($verification->getPaymentToken() || $verification->getRecurrenceToken()) {
-                        // Add payment token
-                        $this->adapter->savePaymentToken(
-                            $order->getCustomerId(),
-                            $verification->getPaymentToken(),
-                            $verification->getRecurrenceToken(),
-                            $verification->getCardBrand(),
-                            $verification->getMaskedPan(),
-                            $verification->getExpireDate(),
-                            $order->getOrderId()
-                        );
-
-                        // Use the first item only
-                        break;
-                    }
-                }
-
                 break;
             case TransactionInterface::TYPE_AUTHORIZATION:
                 if ($transaction->isFailed()) {
@@ -774,28 +758,6 @@ trait OrderAction
                         sprintf('Payment has been authorized. Transaction: %s', $transaction->getNumber()),
                         $transaction->getNumber()
                     );
-                }
-
-                // Save Payment Token
-                if ($order->needsSaveToken()) {
-                    $authorizations = $this->fetchAuthorizationList($order->getPaymentId());
-                    foreach ($authorizations as $authorization) {
-                        if ($authorization->getPaymentToken() || $authorization->getRecurrenceToken()) {
-                            // Add payment token
-                            $this->adapter->savePaymentToken(
-                                $order->getCustomerId(),
-                                $authorization->getPaymentToken(),
-                                $authorization->getRecurrenceToken(),
-                                $authorization->getCardBrand(),
-                                $authorization->getMaskedPan(),
-                                $authorization->getExpireDate(),
-                                $order->getOrderId()
-                            );
-
-                            // Use the first item only
-                            break;
-                        }
-                    }
                 }
 
                 break;
@@ -1091,6 +1053,138 @@ trait OrderAction
     public function isCreditMemoExist($transactionId)
     {
         return $this->adapter->isCreditMemoExist($transactionId);
+    }
+
+    /**
+     * Extract and save tokens.
+     *
+     * @param mixed $orderId
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function savePaymentTokens($orderId)
+    {
+        /** @var Order $order */
+        $order = $this->getOrder($orderId);
+
+        $paymentId = $order->getPaymentId();
+
+        // @todo Check possibility saving of unscheduled token
+
+        // Looks for verifications
+        $verifications = $this->fetchVerificationList($paymentId);
+        foreach ($verifications as $verification) {
+            // Skip verification which failed transaction state
+            if ($verification->getTransaction()->isFailed()) {
+                continue;
+            }
+
+            if ($verification->getPaymentToken() || $verification->getRecurrenceToken()) {
+                // Add payment token
+                $this->adapter->savePaymentToken(
+                    $order->getCustomerId(),
+                    $verification->getPaymentToken(),
+                    $verification->getRecurrenceToken(),
+                    null,
+                    $verification->getCardBrand(),
+                    $verification->getMaskedPan(),
+                    $verification->getExpireDate(),
+                    $order->getOrderId()
+                );
+
+                // Use the first item only
+                break;
+            }
+        }
+
+        // Looks for authorizations
+        $authorizations = $this->fetchAuthorizationList($order->getPaymentId());
+        foreach ($authorizations as $authorization) {
+            if ($authorization->getPaymentToken() || $authorization->getRecurrenceToken()) {
+                // Add payment token
+                $this->adapter->savePaymentToken(
+                    $order->getCustomerId(),
+                    $authorization->getPaymentToken(),
+                    $authorization->getRecurrenceToken(),
+                    null,
+                    $authorization->getCardBrand(),
+                    $authorization->getMaskedPan(),
+                    $authorization->getExpireDate(),
+                    $order->getOrderId()
+                );
+
+                // Use the first item only
+                break;
+            }
+        }
+    }
+
+    /**
+     * Extract and save tokens.
+     *
+     * @param mixed $orderId
+     *
+     * @return void
+     * @throws Exception
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
+    public function savePaymentOrderTokens($orderId)
+    {
+        /** @var Order $order */
+        $order = $this->getOrder($orderId);
+
+        $paymentOrderId = $order->getPaymentOrderId();
+        if (empty($paymentOrderId)) {
+            throw new Exception('Unable to get the payment order ID');
+        }
+
+        $paymentInfo = $this->fetchPaymentInfo($paymentOrderId);
+        $paid = $paymentInfo->getOperationByRel('paid-paymentorder', false);
+        if (!$paid) {
+            return;
+        }
+
+        $result = $this->request($paid['method'], $paid['href']);
+        if (!isset($result['paid']) || !isset($result['paid']['tokens'])) {
+            return;
+        }
+
+        $cardBrand = $result['paid']['details']['cardBrand'];
+        $maskedPan = $result['paid']['details']['maskedPan'];
+        $expiryDate = $result['paid']['details']['expiryDate'];
+
+        $paymentToken = null;
+        $recurrenceToken = null;
+        $unscheduledToken = null;
+        foreach ($result['paid']['tokens'] as $token) {
+            switch ($token['type']) {
+                case 'payment':
+                    $paymentToken = $token['token'];
+                    break;
+                case 'recurrence':
+                    $recurrenceToken = $token['token'];
+                    break;
+                case 'unscheduled':
+                    $unscheduledToken = $token['token'];
+                    break;
+            }
+        }
+
+        if ($paymentToken || $recurrenceToken || $unscheduledToken) {
+            // Add payment token
+            $this->adapter->savePaymentToken(
+                $order->getCustomerId(),
+                $paymentToken,
+                $recurrenceToken,
+                $unscheduledToken,
+                $cardBrand,
+                $maskedPan,
+                $expiryDate,
+                $order->getOrderId()
+            );
+        }
     }
 
     /**

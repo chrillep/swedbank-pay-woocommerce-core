@@ -145,8 +145,8 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
             OrderInterface::CURRENCY => $this->gateway->currency,
             OrderInterface::STATUS => OrderInterface::STATUS_AUTHORIZED,
             OrderInterface::CREATED_AT => gmdate( 'Y-m-d H:i:s' ),
-            OrderInterface::PAYMENT_ID => null,
-            OrderInterface::PAYMENT_ORDER_ID => null,
+            OrderInterface::PAYMENT_ID => '/psp/creditcard/payments/70abecfe-7ed3-47cb-a0ef-08db0362a155',
+            OrderInterface::PAYMENT_ORDER_ID => '/psp/paymentorders/a074162f-68d2-4eeb-e201-08db05daa63c',
             OrderInterface::NEEDS_SAVE_TOKEN_FLAG => false,
             OrderInterface::HTTP_ACCEPT => null,
             OrderInterface::HTTP_USER_AGENT => 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0',
@@ -276,17 +276,23 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
      * Save Payment Token.
      *
      * @param mixed $customerId
-     * @param string $paymentToken
-     * @param string $recurrenceToken
+     * @param string|null $paymentToken
+     * @param string|null $recurrenceToken
+     * @param string|null $unscheduledToken
      * @param string $cardBrand
      * @param string $maskedPan
      * @param string $expiryDate
      * @param mixed|null $orderId
+     *
+     * @return void
+     *
+     * @throws Exception
      */
     public function savePaymentToken(
         $customerId,
         $paymentToken,
         $recurrenceToken,
+        $unscheduledToken,
         $cardBrand,
         $maskedPan,
         $expiryDate,

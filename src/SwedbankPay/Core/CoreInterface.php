@@ -16,7 +16,11 @@ interface CoreInterface
     const OPERATION_PURCHASE = 'Purchase';
     const OPERATION_VERIFY = 'Verify';
     const OPERATION_RECUR = 'Recur';
+    const OPERATION_UNSCHEDULED_PURCHASE = 'UnscheduledPurchase';
+    const OPERATION_FINANCING_CONSUMER = 'FinancingConsumer';
     const OPERATION_UPDATE_ORDER = 'UpdateOrder';
+
+    const TYPE_CREDITCARD = 'CreditCard';
 
     /**
      * Can Capture.
@@ -286,4 +290,24 @@ interface CoreInterface
      * @param array $context Context
      */
     public function log($level, $message, array $context = []);
+
+    /**
+     * Extract and save tokens.
+     *
+     * @param mixed $orderId
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function savePaymentTokens($orderId);
+
+    /**
+     * Extract and save tokens.
+     *
+     * @param mixed $orderId
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function savePaymentOrderTokens($orderId);
 }

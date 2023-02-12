@@ -350,14 +350,12 @@ trait Card
      * Initiate a CreditCard Unscheduled Purchase
      *
      * @param mixed $orderId
-     * @param string $recurrenceToken
      * @param string|null $paymentToken
      *
      * @return Response
-     * @throws \Exception
-     * @SuppressWarnings(PHPMD.ElseExpression)
+     * @throws Exception
      */
-    public function initiateCreditCardUnscheduledPurchase($orderId, $recurrenceToken, $paymentToken = null)
+    public function initiateCreditCardUnscheduledPurchase($orderId, $paymentToken = null)
     {
         /** @var Order $order */
         $order = $this->getOrder($orderId);
@@ -377,6 +375,7 @@ trait Card
                 $this->configuration->getAutoCapture() ?
                     self::INTENT_AUTOCAPTURE : self::INTENT_AUTHORIZATION
             )
+            ->setPaymentToken($paymentToken)
             ->setCurrency($order->getCurrency())
             ->setAmount($order->getAmountInCents())
             ->setVatAmount($order->getVatAmountInCents())
@@ -395,13 +394,6 @@ trait Card
                 (new PaymentPrefillInfo())->setMsisdn($order->getBillingPhone())
             )
             ->setMetadata($metadata);
-
-        // Use Recurrence Token if it's exist
-        if (!empty($recurrenceToken)) {
-            $payment->setRecurrenceToken($recurrenceToken);
-        } else {
-            $payment->setPaymentToken($paymentToken);
-        }
 
         $paymentObject = new PaymentRecurObject();
         $paymentObject->setPayment($payment);
