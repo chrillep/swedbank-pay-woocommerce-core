@@ -45,7 +45,7 @@ class CheckoutTest extends TestCase
      * @depends CheckoutTest::testInitiatePaymentOrderPurchase
      * @param Response $response
      */
-    public function DtestGetPaymentIdByPaymentOrder(Response $response)
+    public function testGetPaymentIdByPaymentOrder(Response $response)
     {
         $paymentId = $this->core->getPaymentIdByPaymentOrder($response['payment_order']['id']);
         $this->assertEquals(false, $paymentId);
@@ -417,5 +417,4 @@ RESPONSE;
 
         $this->coreMock->deletePaymentToken('payment-token');
     }
-
 }
