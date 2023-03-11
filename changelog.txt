@@ -1,3 +1,14 @@
+Version 6.0.0
+Added
+- Added method `initiatePaymentOrderUnscheduledPurchase($orderId, $unscheduledToken)`
+- Added method `savePaymentOrderTokens($orderId)`
+- Added method `deletePaymentToken($paymentToken)`
+
+Changed
+- Changed method parameters `initiatePaymentOrderPurchase($orderId, $consumerProfileRef = null, $genPaymentToken = false, $genRecurrenceToken = false, $genUnscheduledToken = false)`
+- Changed method parameters `initiatePaymentOrderVerify($orderId, $genPaymentToken = false, $genRecurrenceToken = false, $genUnscheduledToken = false)`
+- Changed method parameters `captureInvoice($orderId, array $items = [])`
+
 Version 5.3.0
 Changed
 - Improved messages of exceptions

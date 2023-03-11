@@ -37,7 +37,9 @@ trait Checkout
      *
      * @param mixed $orderId
      * @param string|null $consumerProfileRef
-     * @param bool $generateToken
+     * @param bool $genPaymentToken
+     * @param bool $genRecurrenceToken
+     * @param bool $genUnscheduledToken
      *
      * @return Response
      * @throws Exception
@@ -48,7 +50,9 @@ trait Checkout
     public function initiatePaymentOrderPurchase(
         $orderId,
         $consumerProfileRef = null,
-        $generateToken = false
+        $genPaymentToken = false,
+        $genRecurrenceToken = false,
+        $genUnscheduledToken = false
     ) {
         /** @var Order $order */
         $order = $this->getOrder($orderId);
@@ -118,9 +122,9 @@ trait Checkout
             ->setDescription($order->getDescription())
             ->setUserAgent($order->getHttpUserAgent())
             ->setLanguage($order->getLanguage())
-            ->setGenerateRecurrenceToken($generateToken)
-            ->setGeneratePaymentToken($generateToken)
-            ->setGenerateUnscheduledToken($generateToken)
+            ->setGenerateRecurrenceToken($genRecurrenceToken)
+            ->setGeneratePaymentToken($genPaymentToken)
+            ->setGenerateUnscheduledToken($genUnscheduledToken)
             ->setDisablePaymentMenu(false)
             ->setUrls($urlData)
             ->setPayeeInfo($payeeInfo)
@@ -189,18 +193,22 @@ trait Checkout
      * @return Response
      * @throws Exception
      */
-    public function initiatePaymentOrderVerify($orderId)
-    {
+    public function initiatePaymentOrderVerify(
+        $orderId,
+        $genPaymentToken = false,
+        $genRecurrenceToken = false,
+        $genUnscheduledToken = false
+    ) {
         /** @var Order $order */
         $order = $this->getOrder($orderId);
 
         $urls = $this->getPlatformUrls($orderId);
 
+        // PaymentUrl should be disabled here. Because `redirect-paymentorder` will be empty in Payment Only mode.
         $urlData = new PaymentorderUrl();
         $urlData->setHostUrls($urls->getHostUrls())
                 ->setCompleteUrl($urls->getCompleteUrl())
                 ->setCancelUrl($urls->getCancelUrl())
-                ->setPaymentUrl($urls->getPaymentUrl())
                 ->setCallbackUrl($urls->getCallbackUrl())
                 ->setTermsOfService($urls->getTermsUrl())
                 ->setLogoUrl($urls->getLogoUrl());
@@ -243,9 +251,9 @@ trait Checkout
             ->setDescription('Verification of Credit Card')
             ->setUserAgent($order->getHttpUserAgent())
             ->setLanguage($order->getLanguage())
-            ->setGenerateRecurrenceToken(true)
-            ->setGeneratePaymentToken(true)
-            ->setGenerateUnscheduledToken(true)
+            ->setGenerateRecurrenceToken($genRecurrenceToken)
+            ->setGeneratePaymentToken($genPaymentToken)
+            ->setGenerateUnscheduledToken($genUnscheduledToken)
             ->setUrls($urlData)
             ->setPayeeInfo($payeeInfo)
             ->setMetadata($metadata)

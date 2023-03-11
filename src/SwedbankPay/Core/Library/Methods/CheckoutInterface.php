@@ -18,17 +18,19 @@ interface CheckoutInterface
      *
      * @param mixed $orderId
      * @param string|null $consumerProfileRef
-     * @param bool $generateRecurrenceToken
+     * @param bool $genPaymentToken
+     * @param bool $genRecurrenceToken
+     * @param bool $genUnscheduledToken
      *
      * @return Response
      * @throws Exception
-     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
-     * @SuppressWarnings(PHPMD.LongVariable)
      */
     public function initiatePaymentOrderPurchase(
         $orderId,
         $consumerProfileRef = null,
-        $generateRecurrenceToken = false
+        $genPaymentToken = false,
+        $genRecurrenceToken = false,
+        $genUnscheduledToken = false
     );
 
     /**
@@ -39,7 +41,12 @@ interface CheckoutInterface
      * @return Response
      * @throws Exception
      */
-    public function initiatePaymentOrderVerify($orderId);
+    public function initiatePaymentOrderVerify(
+        $orderId,
+        $genPaymentToken = false,
+        $genRecurrenceToken = false,
+        $genUnscheduledToken = false
+    );
 
     /**
      * Initiate Payment Order Recurrent Payment
