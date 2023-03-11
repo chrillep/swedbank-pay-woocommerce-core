@@ -192,6 +192,8 @@ trait Checkout
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function initiatePaymentOrderVerify(
         $orderId,

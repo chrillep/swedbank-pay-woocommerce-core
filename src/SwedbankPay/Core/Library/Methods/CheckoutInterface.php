@@ -24,6 +24,7 @@ interface CheckoutInterface
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
      */
     public function initiatePaymentOrderPurchase(
         $orderId,
@@ -40,6 +41,7 @@ interface CheckoutInterface
      *
      * @return Response
      * @throws Exception
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
      */
     public function initiatePaymentOrderVerify(
         $orderId,
