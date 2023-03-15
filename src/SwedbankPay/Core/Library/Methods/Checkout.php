@@ -138,6 +138,7 @@ trait Checkout
 
         // Add consumerProfileRef if exists
         if (!empty($consumerProfileRef)) {
+            $payer = new PaymentorderPayer();
             $payer->setConsumerProfileRef($consumerProfileRef);
         }
 
