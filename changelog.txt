@@ -1,3 +1,7 @@
+Version 6.0.2
+Fixed
+- Critical error when a product have been deleted
+
 Version 6.0.1
 Fixed
 - PaymentOrder.Payer.ConsumerProfileRef: Both ConsumerProfileRef and PayerReference cannot be set at the same time.
