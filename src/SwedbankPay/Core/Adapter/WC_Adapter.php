@@ -268,9 +268,13 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             $tax = $priceWithTax - $price;
             $taxPercent = ($tax > 0) ? round(100 / ($price / $tax)) : 0;
             $qty = $orderItem->get_quantity();
-            $image = wp_get_attachment_image_src($orderItem->get_product()->get_image_id(), 'full');
 
-            if ($image) {
+            // Get Product
+            $product = $orderItem->get_product();
+
+            // Get product image
+            if ($product && $product->get_image_id()) {
+                $image = wp_get_attachment_image_src($product->get_image_id(), 'full');
                 $image = array_shift($image);
             } else {
                 $image = wc_placeholder_img_src('full');
@@ -283,32 +287,48 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             }
 
             // Get Product Class
-            $productClass = get_post_meta($orderItem->get_product()->get_id(), '_sb_product_class', true);
-            if (empty($productClass)) {
-                $productClass = apply_filters('sb_product_class', 'ProductGroup1', $orderItem->get_product());
+            $productClass = 'ProductGroup1';
+            if ($product) {
+                $productClass = $product->get_meta('_sb_product_class');
+                if (empty($productClass)) {
+                    $productClass = apply_filters('sb_product_class', 'ProductGroup1', $product);
+                }
+            }
+
+            // Get Product name
+            $productName = trim($orderItem->get_name());
+            if (empty($productName)) {
+                $productName = '-';
+            }
+
+            // Check is product shippable
+            if ($product && $product->needs_shipping()) {
+                $needsShipping = true;
+            }
+
+            // Get product url
+            $productUrl = null;
+            if ($product) {
+                $productUrl = $product->get_permalink();
             }
 
             // Get Product Sku
-            $productReference = trim(str_replace(array(' ', '.', ','), '-', $orderItem->get_product()->get_sku()));
-            if (empty($productReference)) {
-                $productReference = wp_generate_password(12, false);
+            $productReference = null;
+            if ($product && $product->get_sku()) {
+                $productReference = trim(str_replace(array(' ', '.', ','), '-', $product->get_sku()));
             }
 
-            $productName = trim($orderItem->get_name());
-
-            // Check is product shippable
-            $product = $orderItem->get_product();
-            if ($product && $product->needs_shipping()) {
-                $needsShipping = true;
+            if (empty($productReference)) {
+                $productReference = wp_generate_password(12, false);
             }
 
             $items[] = array(
                 // The field Reference must match the regular expression '[\\w-]*'
                 OrderItemInterface::FIELD_REFERENCE => $productReference,
-                OrderItemInterface::FIELD_NAME => !empty($productName) ? $productName : '-',
+                OrderItemInterface::FIELD_NAME => $productName,
                 OrderItemInterface::FIELD_TYPE => OrderItemInterface::TYPE_PRODUCT,
                 OrderItemInterface::FIELD_CLASS => $productClass,
-                OrderItemInterface::FIELD_ITEM_URL => $orderItem->get_product()->get_permalink(),
+                OrderItemInterface::FIELD_ITEM_URL => $productUrl,
                 OrderItemInterface::FIELD_IMAGE_URL => $image,
                 OrderItemInterface::FIELD_DESCRIPTION => $orderItem->get_name(),
                 OrderItemInterface::FIELD_QTY => $qty,
