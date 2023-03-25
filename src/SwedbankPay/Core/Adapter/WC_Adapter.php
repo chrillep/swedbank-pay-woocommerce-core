@@ -2,6 +2,7 @@
 
 namespace SwedbankPay\Core\Adapter;
 
+use Automattic\WooCommerce\Utilities\OrderUtil;
 use SwedbankPay\Core\Exception;
 use SwedbankPay\Core\Log\LogLevel;
 use SwedbankPay\Core\PaymentAdapter;
@@ -1168,20 +1169,33 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
      */
     public function isCreditMemoExist($transactionId)
     {
-        global $wpdb;
+        if (!$this->isHOPSEnabled()) {
+            global $wpdb;
 
-        $query = "
-                SELECT post_id FROM `{$wpdb->prefix}postmeta` postmeta
-                LEFT JOIN `{$wpdb->prefix}posts` AS posts ON postmeta.post_id = posts.ID
-                WHERE meta_key='_transaction_id' AND meta_value=%s AND posts.post_type='shop_order_refund';
-            ";
+            $query = "
+                    SELECT post_id FROM `{$wpdb->prefix}postmeta` postmeta
+                    LEFT JOIN `{$wpdb->prefix}posts` AS posts ON postmeta.post_id = posts.ID
+                    WHERE meta_key='_transaction_id' AND meta_value=%s AND posts.post_type='shop_order_refund';
+                ";
 
-        if ($wpdb->get_var($wpdb->prepare($query, $transactionId))) {
-            // Credit Memo is already exists
-            return true;
+            if ($wpdb->get_var($wpdb->prepare($query, $transactionId))) {
+                // Credit Memo is already exists
+                return true;
+            }
+
+            return false;
         }
 
-        return false;
+        $orders = wc_get_orders(
+            array(
+                'type'           => 'shop_order_refund',
+                'return'         => 'ids',
+                'limit'          => 1,
+                'transaction_id' => $transactionId,
+            )
+        );
+
+        return count($orders) > 0;
     }
 
     /**
@@ -1313,5 +1327,26 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
     private function getUuid($node)
     {
         return apply_filters('swedbank_pay_generate_uuid', $node);
+    }
+
+    /**
+     * Checks if High-Performance Order Storage is enabled.
+     *
+     * @see https://woocommerce.com/document/high-performance-order-storage/
+     * @see https://github.com/woocommerce/woocommerce/wiki/High-Performance-Order-Storage-Upgrade-Recipe-Book
+     * @return bool
+     * @SuppressWarnings(PHPMD.StaticAccess)
+     */
+    private function isHOPSEnabled()
+    {
+        if (!class_exists('\Automattic\WooCommerce\Utilities\OrderUtil')) {
+            return false;
+        }
+
+        if (!method_exists(OrderUtil::class, 'custom_orders_table_usage_is_enabled')) {
+            return false;
+        }
+
+        return OrderUtil::custom_orders_table_usage_is_enabled();
     }
 }
