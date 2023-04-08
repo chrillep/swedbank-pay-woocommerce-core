@@ -8,6 +8,13 @@ namespace SwedbankPay\Core;
  */
 interface PaymentAdapterInterface
 {
+    const PRODUCT_CHECKOUT2 = 'Checkout2';
+    const PRODUCT_CHECKOUT3 = 'Checkout3';
+
+    const IMPLEMENTATION_STARTER = 'Starter';
+    const IMPLEMENTATION_ENTERPRISE = 'Enterprise';
+    const IMPLEMENTATION_PAYMENTS_ONLY = 'PaymentsOnly';
+
     /**
      * Payment Methods
      */
@@ -242,4 +249,18 @@ interface PaymentAdapterInterface
      * @return bool
      */
     public function isCreditMemoExist($transactionId);
+
+    /**
+     * Get Product Name.
+     *
+     * @return string|null
+     */
+    public function getProductName();
+
+    /**
+     * Get Implementation.
+     *
+     * @return string|null
+     */
+    public function getImplementation();
 }

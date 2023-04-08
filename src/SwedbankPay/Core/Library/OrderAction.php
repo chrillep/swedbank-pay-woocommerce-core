@@ -587,6 +587,7 @@ trait OrderAction
      * @param string|null $transactionNumber
      * @throws Exception
      * @SuppressWarnings(PHPMD.ElseExpression)
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function fetchTransactionsAndUpdateOrder($orderId, $transactionNumber = null)
     {
@@ -594,7 +595,9 @@ trait OrderAction
         $order = $this->getOrder($orderId);
 
         // Get Payment ID
-        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+        if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT &&
+            $this->adapter->getProductName() !== PaymentAdapterInterface::PRODUCT_CHECKOUT3
+        ) {
             $paymentId = $this->getPaymentIdByPaymentOrder($order->getPaymentOrderId());
         } else {
             $paymentId = $order->getPaymentId();
@@ -1213,7 +1216,9 @@ trait OrderAction
                 }
 
                 // Get Payment ID
-                if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT) {
+                if ($order->getPaymentMethod() === PaymentAdapterInterface::METHOD_CHECKOUT &&
+                    $this->adapter->getProductName() !== PaymentAdapterInterface::PRODUCT_CHECKOUT3
+                ) {
                     $paymentId = $this->getPaymentIdByPaymentOrder($order->getPaymentOrderId());
                 } else {
                     $paymentId = $order->getPaymentId();
