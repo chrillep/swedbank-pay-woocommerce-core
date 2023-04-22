@@ -421,4 +421,24 @@ class Adapter extends PaymentAdapter implements PaymentAdapterInterface
     {
         return false;
     }
+
+    /**
+     * Get Product Name.
+     *
+     * @return string
+     */
+    public function getProductName()
+    {
+        return null;
+    }
+
+    /**
+     * Get Implementation.
+     *
+     * @return string
+     */
+    public function getImplementation()
+    {
+        return null;
+    }
 }

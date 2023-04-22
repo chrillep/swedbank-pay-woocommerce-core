@@ -919,6 +919,10 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
             return;
         }
 
+        if (!$this->gateway->payment_token_class) {
+            return;
+        }
+
         // Get token class
         if (!is_string($this->gateway->payment_token_class) ||
             !class_exists($this->gateway->payment_token_class, false)
@@ -1040,7 +1044,6 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
                         )
                     );
 
-                    $subscription->save_meta_data();
                     $subscription->save();
                 }
             }
@@ -1143,7 +1146,7 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
 
         // Add transaction id to identify refund memo
         $refund->update_meta_data('_transaction_id', $transactionId);
-        $refund->save_meta_data();
+        $refund->save();
 
         $this->log(
             'info',
@@ -1196,6 +1199,34 @@ class WC_Adapter extends PaymentAdapter implements PaymentAdapterInterface
         );
 
         return count($orders) > 0;
+    }
+
+    /**
+     * Get Product Name.
+     *
+     * @return string|null
+     */
+    public function getProductName()
+    {
+        if (method_exists($this->gateway, 'get_product_name')) {
+            return $this->gateway->get_product_name();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get Implementation.
+     *
+     * @return string|null
+     */
+    public function getImplementation()
+    {
+        if (method_exists($this->gateway, 'get_implementation')) {
+            return $this->gateway->get_implementation();
+        }
+
+        return null;
     }
 
     /**
